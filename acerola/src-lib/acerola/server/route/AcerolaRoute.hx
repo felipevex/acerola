@@ -1,0 +1,89 @@
+package acerola.server.route;
+
+import acerola.request.AcerolaPath;
+import datetime.DateTime;
+import helper.kits.StringKit;
+import haxe.ds.StringMap;
+import acerola.server.model.AcerolaServerResponseData;
+import acerola.server.model.AcerolaServerRequestData;
+import node.express.Response;
+import node.express.Request;
+import acerola.server.service.AcerolaServerService;
+import acerola.server.model.AcerolaServerVerbsType;
+import node.express.Application;
+
+class AcerolaRoute {
+
+    private var express:Application;
+
+    public function new(express:Application) {
+        this.express = express;
+    }
+
+    // TIP : Use /my/route/[id:Int]/[name:String]
+    public function registerService(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>):Void {
+        Sys.println('ROUTE - ${verb} ${route} ${Type.getClassName(service)}');
+
+        var routeCleaned:String = route.cleanPath;
+
+        switch (verb) {
+            case AcerolaServerVerbsType.GET : this.express.get(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
+            case AcerolaServerVerbsType.POST : this.express.post(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
+        }
+
+    }
+
+    private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response):Void {
+        
+        var requestHeader:StringMap<String> = new StringMap<String>();
+        for (key in Reflect.fields(xreq.headers)) requestHeader.set(key, Reflect.field(xreq.headers, key));
+        
+        var req:AcerolaServerRequestData = {
+            verb: verb,
+            route: route,
+            body: xreq.body,
+            headers : requestHeader,
+            moment : DateTime.now(),
+            hostname: (
+                xreq.hostname == null 
+                ? 'NO_HOSTNAME'
+                : xreq.hostname
+            ),
+            user_agent: (
+                StringKit.isEmpty(xreq.get('User-Agent'))
+                ? 'NONE'
+                : xreq.get('User-Agent')
+            )
+        }
+
+        var res:AcerolaServerResponseData = {
+            headers : new StringMap<String>(),
+            status: 200,
+            data: null,
+            send : null
+        }
+
+        res.headers.set('Content-Type', 'text/plain');
+        res.send = () -> {
+            for (key in res.headers.keys()) xres.set(key, res.headers.get(key));
+            xres.status(res.status).send(res.data);
+        }
+
+        Type.createInstance(service, [req, res]);
+    }
+
+    
+    // public function registerProxy(verb:CrappRouteVerb, route:String, proxyURL:String):Void {
+    //     Crapp.S.controller.print(1, 'PROXY - ${verb} ${route} ${proxyURL}');
+
+    //     switch (verb) {
+    //         case CrappRouteVerb.GET : this.express.get(route, this.proxyRunner.bind(proxyURL, _, _));
+    //         case CrappRouteVerb.POST : this.express.post(route, this.proxyRunner.bind(proxyURL, _, _));
+    //     }
+    // }
+
+    // private function proxyRunner(proxyURL:String, req:Request, res:Response):Void {
+    //     var http:HttpRequest = new HttpRequest(proxyURL);
+    // }
+
+}
