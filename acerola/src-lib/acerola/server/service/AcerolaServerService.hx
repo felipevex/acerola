@@ -48,6 +48,10 @@ class AcerolaServerService {
     public function run():Void {
         throw 'Override run method.';
     }
+
+    public function runTimeout():Void {
+        
+    }
     
     private function result(data:Dynamic, status:Int, contentType:String):Void {
         this.res.headers.set('Content-Type', contentType);

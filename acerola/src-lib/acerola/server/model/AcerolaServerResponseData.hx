@@ -1,5 +1,6 @@
 package acerola.server.model;
 
+import haxe.Timer;
 import haxe.ds.StringMap;
 
 typedef AcerolaServerResponseData = {
@@ -7,4 +8,5 @@ typedef AcerolaServerResponseData = {
     var status:Int;
     var data:Dynamic;
     var send:()->Void;
+    var timeout:Timer;
 }

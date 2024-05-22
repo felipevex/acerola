@@ -25,7 +25,7 @@ class AcerolaRoute {
         Sys.println('ROUTE - ${verb} ${route} ${Type.getClassName(service)}');
 
         var routeCleaned:String = route.cleanPath;
-
+        
         switch (verb) {
             case AcerolaServerVerbsType.GET : this.express.get(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
             case AcerolaServerVerbsType.POST : this.express.post(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
@@ -60,16 +60,27 @@ class AcerolaRoute {
             headers : new StringMap<String>(),
             status: 200,
             data: null,
-            send : null
+            send : null,
+            timeout : null
         }
 
         res.headers.set('Content-Type', 'text/plain');
         res.send = () -> {
+            if (res.timeout != null) {
+                res.timeout.stop();
+                res.timeout = null;
+            }
+
             for (key in res.headers.keys()) xres.set(key, res.headers.get(key));
             xres.status(res.status).send(res.data);
+
+            res.send = () -> {
+                Sys.println('ERROR - Response already sent');
+            };
         }
 
-        Type.createInstance(service, [req, res]);
+        var serviceInstance:AcerolaServerService = Type.createInstance(service, [req, res]);
+        res.timeout = haxe.Timer.delay(serviceInstance.runTimeout, 5000);
     }
 
     

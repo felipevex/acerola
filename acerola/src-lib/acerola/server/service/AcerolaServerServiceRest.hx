@@ -37,4 +37,8 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
         this.result(error, status, 'application/json');
     }
 
+    override function runTimeout() {
+        this.resultError('Server timeout.', 504, 'Server timeout.');
+    }
+
 }
