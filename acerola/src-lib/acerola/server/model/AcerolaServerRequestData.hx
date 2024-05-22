@@ -1,5 +1,6 @@
 package acerola.server.model;
 
+import database.DatabasePool;
 import acerola.request.AcerolaPath;
 import datetime.DateTime;
 import haxe.ds.StringMap;
@@ -13,4 +14,5 @@ typedef AcerolaServerRequestData = {
     var hostname:String;
     var user_agent:String;
     var moment:DateTime;
+    var pool:DatabasePool;
 }

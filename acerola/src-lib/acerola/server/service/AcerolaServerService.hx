@@ -39,9 +39,9 @@ class AcerolaServerService {
         try {
             validator.validate(body);
         } catch (e:AnonStructError) {
-            throw new AcerolaRequestError(400, 'Body', e.toString());
+            throw new AcerolaRequestError(400, 'Body', e.toStringFriendly(), e.toString());
         } catch (e:Dynamic) {
-            throw new AcerolaRequestError(500, 'Body', 'Undefined Error.');
+            throw new AcerolaRequestError(500, 'Body', 'Undefined Error.', Std.string(e));
         }
     }
 
@@ -58,6 +58,12 @@ class AcerolaServerService {
         this.res.status = status;
         this.res.data = data;
         this.res.send();
+
+        this.runAfterResult(true);
+    }
+
+    private function runAfterResult(isSuccess:Bool):Void {
+        
     }
 
 }

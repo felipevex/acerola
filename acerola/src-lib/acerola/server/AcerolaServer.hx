@@ -1,5 +1,6 @@
 package acerola.server;
 
+import database.DatabaseConnection;
 import acerola.model.AcerolaResponseError;
 import node.express.Response;
 import node.express.Request;
@@ -14,10 +15,10 @@ class AcerolaServer {
     public var serverStarted:Bool;
     public var route:AcerolaRoute;
 
-    public function new() {
+    public function new(?connection:DatabaseConnection) {
         this.serverStarted = false;
         this.createApplication();
-        this.route = new AcerolaRoute(this.express);
+        this.route = new AcerolaRoute(this.express, connection);
     }
 
     private function createApplication():Void {

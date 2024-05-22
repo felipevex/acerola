@@ -16,7 +16,7 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
                 this.validate();
                 this.run();
             } catch (e:AcerolaRequestError) {
-                this.resultError(e.toString(), e.status, e.toString());
+                this.resultError(e.toString(), e.status, e.internal);
             } catch (e:Dynamic) {
                 this.resultError('Unexpected server error.', 500, Std.string(e));
             }
@@ -35,10 +35,11 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
         }
         
         this.result(error, status, 'application/json');
+        this.runAfterResult(false);
     }
 
     override function runTimeout() {
-        this.resultError('Server timeout.', 504, 'Server timeout.');
+        AcerolaRequestError.SERVER_TIMEOUT('Timeout', this.resultError);
     }
 
 }

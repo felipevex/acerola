@@ -1,5 +1,7 @@
 package acerola.server.route;
 
+import database.DatabaseConnection;
+import database.DatabasePool;
 import acerola.request.AcerolaPath;
 import datetime.DateTime;
 import helper.kits.StringKit;
@@ -15,9 +17,12 @@ import node.express.Application;
 class AcerolaRoute {
 
     private var express:Application;
+    private var database:DatabasePool;
 
-    public function new(express:Application) {
+    public function new(express:Application, connection:DatabaseConnection) {
         this.express = express;
+
+        if (connection != null) this.database = new DatabasePool(connection);
     }
 
     // TIP : Use /my/route/[id:Int]/[name:String]
@@ -53,7 +58,8 @@ class AcerolaRoute {
                 StringKit.isEmpty(xreq.get('User-Agent'))
                 ? 'NONE'
                 : xreq.get('User-Agent')
-            )
+            ),
+            pool : this.database
         }
 
         var res:AcerolaServerResponseData = {
