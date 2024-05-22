@@ -1,15 +1,12 @@
 package project.api.service.test;
 
-import acerola.server.service.AcerolaServerJsonService;
+import acerola.server.service.AcerolaServerServiceRest;
 
-class TestPostService extends AcerolaServerJsonService<Dynamic> {
+class TestPostService extends AcerolaServerServiceRest<Dynamic> {
     
     override function run() {
         var data:Dynamic = this.req.body;
-        
-        this.res.data = data;
-        this.res.status = 200;
-        this.res.send();
+        this.resultSuccess(data);
     }
 
 }

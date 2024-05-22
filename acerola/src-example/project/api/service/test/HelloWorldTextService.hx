@@ -1,11 +1,11 @@
 package project.api.service.test;
 
-import acerola.server.service.AcerolaServerService;
+import acerola.server.service.AcerolaServerServiceRest;
 
-class HelloWorldTextService extends AcerolaServerService {
+class HelloWorldTextService extends AcerolaServerServiceRest<Dynamic> {
 
     override function run() {
-        this.resultSuccess({hello : "world"});
+        this.resultHtml(haxe.Json.stringify({hello : "world"}));
     }
 
 }

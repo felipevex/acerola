@@ -1,7 +1,13 @@
 haxe example.hxml                   && \
-haxe test-api-acerola.hxml          && \
+haxe test-unit-acerola.hxml         && \
 haxe test-api-acerola.hxml
 
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "BUILD ERROR"
+    echo ""
+    exit 1  # Encerra o script com código de saída 1
+fi
 
 bash -c "node ./build/acerola/api/api.js" &
 NODE_PID=$!

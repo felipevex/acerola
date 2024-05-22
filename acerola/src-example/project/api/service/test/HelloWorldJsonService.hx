@@ -1,8 +1,8 @@
 package project.api.service.test;
 
-import acerola.server.service.AcerolaServerJsonService;
+import acerola.server.service.AcerolaServerServiceRest;
 
-class HelloWorldJsonService extends AcerolaServerJsonService<{hello:String}> {
+class HelloWorldJsonService extends AcerolaServerServiceRest<{hello:String}> {
 
     override function run() {
         this.resultSuccess({hello : "world"});

@@ -16,16 +16,10 @@ class AcerolaServerService {
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         this.req = req;
         this.res = res;
-        
-        try {
-            this.setup();
-            this.validate();
-            this.run();
-        } catch (e:AcerolaRequestError) {
-            this.resultError(e.toString(), e.status, e.toString());
-        } catch (e:Dynamic) {
-            this.resultError('Unexpected server error.', 500, Std.string(e));
-        }
+    }
+
+    public function asyncInit(cb:(success:Bool)->Void):Void {
+        haxe.Timer.delay(cb.bind(true), 0);
     }
 
     public function setup():Void {
@@ -54,25 +48,12 @@ class AcerolaServerService {
     public function run():Void {
         throw 'Override run method.';
     }
-
-    public function resultSuccess(data:Dynamic, status:Int = 200):Void {
+    
+    private function result(data:Dynamic, status:Int, contentType:String):Void {
+        this.res.headers.set('Content-Type', contentType);
         this.res.status = status;
         this.res.data = data;
         this.res.send();
     }
-
-    public function resultError(message:String, status:Int = 500, internalMessage:String =  ''):Void {
-        this.res.status = status;
-        this.res.headers.set('Content-Type', 'application/json');
-        
-        this.res.data = {
-            error : status, 
-            error_message: message,
-            internal_message : internalMessage
-        };
-
-        this.res.send();
-    }
-
 
 }
