@@ -1,5 +1,6 @@
 package acerola.server;
 
+import acerola.model.AcerolaResponseError;
 import node.express.Response;
 import node.express.Request;
 import acerola.server.route.AcerolaRoute;
@@ -54,7 +55,14 @@ class AcerolaServer {
         if (err.type == "entity.parse.failed") {
             res.status(400);
             res.setHeader('Content-Type', 'application/json');
-            res.send({ error: "Invalid JSON" });
+
+            var error:AcerolaResponseError = {
+                status : 400,
+                message: "Invalid JSON format",
+                error_code: "INVALID_JSON" 
+            }
+            res.send(error);
+
             return;
         }
 
@@ -62,7 +70,12 @@ class AcerolaServer {
 
         res.status(500);
         res.setHeader('Content-Type', 'application/json');
-        res.send({ error: "Internal Server Error" });
+        var error:AcerolaResponseError = {
+            status : 500,
+            message: "Internal Server Error",
+            error_code: "INTERNAL_SERVER_ERROR"
+        }
+        res.send(error);
     }
 
 }
