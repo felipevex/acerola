@@ -12,6 +12,7 @@ class AcerolaServerService {
     private var res:AcerolaServerResponseData;
 
     private var bodyValidator:Class<AnonStruct>;
+    private var paramsValidator:Class<AnonStruct>;
     
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         this.req = req;
@@ -28,22 +29,25 @@ class AcerolaServerService {
 
     public function validate():Void {
         this.validateBody();
+        this.validateParams();
     }
 
-    public function validateBody():Void {
-        if (this.bodyValidator == null) return;
+    private function validateObject(objectType:String, data:Dynamic, validator:Class<AnonStruct>):Void {
+        if (validator == null) return;
 
-        var body = this.req.body;
-        var validator = Type.createInstance(this.bodyValidator, []);
+        var validatorInstance = Type.createInstance(validator, []);
         
         try {
-            validator.validate(body);
+            validatorInstance.validate(data);
         } catch (e:AnonStructError) {
-            throw new AcerolaRequestError(400, 'Body', e.toStringFriendly(), e.toString());
+            throw new AcerolaRequestError(400, objectType, e.toStringFriendly(), e.toString());
         } catch (e:Dynamic) {
-            throw new AcerolaRequestError(500, 'Body', 'Undefined Error.', Std.string(e));
+            throw new AcerolaRequestError(500, objectType, 'Undefined Error.', Std.string(e));
         }
     }
+
+    public function validateParams():Void this.validateObject('Params', this.req.params, this.paramsValidator);
+    public function validateBody():Void this.validateObject('Body', this.req.body, this.bodyValidator);
 
     public function run():Void {
         throw 'Override run method.';

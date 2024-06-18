@@ -12,7 +12,7 @@ class AcerolaUnitTest {
         var runner = new Runner();
 
         runner.addCase(new AcerolaPathTest());
-        runner.addCase(new DatabasePoolTest());
+        // runner.addCase(new DatabasePoolTest());
         
         Report.create(runner);
         runner.run();

@@ -10,6 +10,7 @@ typedef AcerolaServerRequestData = {
     var verb:AcerolaServerVerbsType;
     var route:AcerolaPath;
     var body:Dynamic;
+    var params:Dynamic;
     var headers:StringMap<String>;
     var hostname:String;
     var user_agent:String;

@@ -57,4 +57,29 @@ abstract AcerolaPath(String) from String to String {
 
         return result;
     }
+
+    public function extractCleanData(data:Dynamic):Dynamic {
+        var result:Dynamic = {};
+        var types:StringMap<String> = types;
+        var hasKey:Bool = false;
+
+        for (key in types.keys()) {
+            hasKey = true;
+
+            if (Reflect.hasField(data, key)) {
+                switch (types.get(key)) {
+                    case 'Int':
+                        Reflect.setField(result, key, Std.parseInt(Reflect.field(data, key)));
+                    case _:
+                        Reflect.setField(result, key, Std.string(Reflect.field(data, key)));
+                }
+            } else {
+                Reflect.setField(result, key, null);
+            }
+        }
+
+        if (hasKey) return result;
+        else return null;
+    }
+
 }

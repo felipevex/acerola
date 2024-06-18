@@ -90,4 +90,60 @@ class AcerolaPathTest extends Test {
         // ASSERT
         Assert.equals(expected, result);
     }
+
+    function test_acerola_path_should_generate_clean_data_from_common_object() {
+        // ARRANGE
+        var path:AcerolaPath = '/foo/[name:String]/[id:Int]';
+        
+        var values:Dynamic = {
+            name : "bar",
+            id : "1"
+        };
+
+        var expected:Dynamic = {
+            name : "bar",
+            id : 1
+        };
+
+        // ACT
+        var result:Dynamic = path.extractCleanData(values);
+
+        // ASSERT
+        Assert.same(expected, result);
+    }
+
+    function test_acerola_path_should_generate_clean_data_from_common_object_with_null_elements() {
+        // ARRANGE
+        var path:AcerolaPath = '/foo/[name:String]/[id:Int]';
+        
+        var values:Dynamic = {
+            id : "1"
+        };
+
+        var expected:Dynamic = {
+            name : null,
+            id : 1
+        };
+
+        // ACT
+        var result:Dynamic = path.extractCleanData(values);
+
+        // ASSERT
+        Assert.same(expected, result);
+    }
+
+    function test_acerola_path_should_generate_null_data_route_without_params() {
+        // ARRANGE
+        var path:AcerolaPath = '/foo/bar';
+        
+        var values:Dynamic = {};
+        
+        var expected:Dynamic = null;
+
+        // ACT
+        var result:Dynamic = path.extractCleanData(values);
+
+        // ASSERT
+        Assert.same(expected, result);
+    }
 }

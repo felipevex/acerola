@@ -1,5 +1,6 @@
 package project.api;
 
+import project.api.service.test.TestGetService;
 import project.api.service.test.TestDatabaseService;
 import database.DatabaseConnection;
 import project.api.service.test.TestTimeoutService;
@@ -28,6 +29,8 @@ class ProjectApi {
         server.route.registerService(AcerolaServerVerbsType.POST, '/v1/test-post', TestPostService);
         server.route.registerService(AcerolaServerVerbsType.POST, '/v1/timeout', TestTimeoutService);
         server.route.registerService(AcerolaServerVerbsType.GET, '/v1/database', TestDatabaseService);
+        server.route.registerService(AcerolaServerVerbsType.GET, '/v1/test-get/[id:Int]/[hello:String]', TestGetService);
+        
         
         server.start();
         

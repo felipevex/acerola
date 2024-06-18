@@ -47,6 +47,7 @@ class AcerolaRoute {
             verb: verb,
             route: route,
             body: xreq.body,
+            params : route.extractCleanData(xreq.params),
             headers : requestHeader,
             moment : DateTime.now(),
             hostname: (
@@ -88,7 +89,6 @@ class AcerolaRoute {
         var serviceInstance:AcerolaServerService = Type.createInstance(service, [req, res]);
         res.timeout = haxe.Timer.delay(serviceInstance.runTimeout, 5000);
     }
-
     
     // public function registerProxy(verb:CrappRouteVerb, route:String, proxyURL:String):Void {
     //     Crapp.S.controller.print(1, 'PROXY - ${verb} ${route} ${proxyURL}');
