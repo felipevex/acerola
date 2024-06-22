@@ -7,6 +7,7 @@
 
 -cp src-test
 -cp src-lib
+-cp src-example
 
 -main acerola.test.unit.AcerolaUnitTest
 
