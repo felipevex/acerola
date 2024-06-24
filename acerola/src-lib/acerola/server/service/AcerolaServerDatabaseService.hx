@@ -20,38 +20,37 @@ class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
         this.behavior.addBehavior(AcerolaServiceBehaviorDatabase);
     }
 
-    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, ?onError:(err:DatabaseError)->Void):Void {
+    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void):Void {
         this.behavior.get(AcerolaServiceBehaviorDatabase).query(
-            this.resultError,
             query,
             onComplete,
-            onError
+            this.resultError
         );
     }
 
     public function queryRun(query:DatabaseRequest, onComplete:()->Void):Void {
         this.behavior.get(AcerolaServiceBehaviorDatabase).queryRun(
-            this.resultError,
             query,
-            onComplete
+            onComplete,
+            this.resultError
         );
         
     }
 
     public function querySelectOne<Q>(query:DatabaseRequest, onRead:(data:Q)->Void):Void {
         this.behavior.get(AcerolaServiceBehaviorDatabase).querySelectOne(
-            this.resultError,
             query,
-            onRead
+            onRead,
+            this.resultError
         );
     }
 
     public function querySelect<Q>(query:DatabaseRequest, protectFrom404:Bool, onRead:(data:Array<Q>)->Void):Void {
         this.behavior.get(AcerolaServiceBehaviorDatabase).querySelect(
-            this.resultError,
             query,
             protectFrom404,
-            onRead
+            onRead,
+            this.resultError
         );
     }
 

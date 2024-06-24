@@ -1,9 +1,8 @@
 package acerola.server.service;
 
+import acerola.server.error.AcerolaServerError;
 import acerola.server.model.AcerolaServerResponseData;
 import acerola.server.model.AcerolaServerRequestData;
-import acerola.server.error.AcerolaRequestError;
-import acerola.model.AcerolaResponseError;
 
 class AcerolaServerServiceRest<S> extends AcerolaServerService {
 
@@ -12,11 +11,11 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
 
         try {
             this.setup();
-        } catch (e:AcerolaRequestError) {
-            this.resultError(e.toString(), e.status, e.internal);
+        } catch (e:AcerolaServerError) {
+            this.resultError(e);
             return;
         } catch (e:Dynamic) {
-            this.resultError('Unexpected server error.', 500, Std.string(e));
+            this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
             return;
         }
 
@@ -29,10 +28,12 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
             try {
                 this.validate();
                 this.run();
-            } catch (e:AcerolaRequestError) {
-                this.resultError(e.toString(), e.status, e.internal);
+            } catch (e:AcerolaServerError) {
+                this.resultError(e);
+                return;
             } catch (e:Dynamic) {
-                this.resultError('Unexpected server error.', 500, Std.string(e));
+                this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
+                return;
             }
 
             return;
@@ -42,25 +43,15 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
         
         b.start({
             onSuccess : this.executeBehavior,
-            onError : this.onBehaviorError
+            onError : this.resultError
         });
     }
-
-    private function onBehaviorError(error:AcerolaResponseError):Void this.result(error, error.status, 'application/json');
 
     public function resultHtml(data:String, status:Int = 200):Void this.result(data, status, 'text/html; charset=utf-8');
     public function resultSuccess(data:S, status:Int = 200):Void this.result(data, status, 'application/json');
 
-    public function resultError(message:String, status:Int, internalMessage:String):Void {
-        var error:AcerolaResponseError = {
-            status : status,
-            message : message,
-            error_code : '000',
-            internal : internalMessage
-        }
-        
-        this.result(error, status, 'application/json');
-        this.runAfterResult(false);
+    public function resultError(error:AcerolaServerError):Void {
+        this.result(error, error.status, 'application/json');
     }
 
     override private function runAfterResult(isSuccess:Bool):Void {
@@ -69,7 +60,7 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
     }
 
     override function runTimeout() {
-        AcerolaRequestError.SERVER_TIMEOUT('Timeout', this.resultError);
+        this.resultError(AcerolaServerError.SERVER_TIMEOUT('Timeout'));
     }
 
 }

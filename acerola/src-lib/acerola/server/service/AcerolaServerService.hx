@@ -1,7 +1,7 @@
 package acerola.server.service;
 
+import acerola.server.error.AcerolaServerError;
 import acerola.server.behavior.AcerolaBehaviorManager;
-import acerola.server.error.AcerolaRequestError;
 import anonstruct.AnonStructError;
 import anonstruct.AnonStruct;
 import acerola.server.model.AcerolaServerResponseData;
@@ -41,9 +41,9 @@ class AcerolaServerService {
         try {
             validatorInstance.validate(data);
         } catch (e:AnonStructError) {
-            throw new AcerolaRequestError(400, objectType, e.toStringFriendly(), e.toString());
+            throw new AcerolaServerError(400, objectType, e.toStringFriendly(), e.toString());
         } catch (e:Dynamic) {
-            throw new AcerolaRequestError(500, objectType, 'Undefined Error.', Std.string(e));
+            throw new AcerolaServerError(500, objectType, 'Undefined Error.', Std.string(e));
         }
     }
 
@@ -59,12 +59,16 @@ class AcerolaServerService {
     }
     
     private function result(data:Dynamic, status:Int, contentType:String):Void {
+        var isSuccess:Bool = true;
+
+        if (Std.isOfType(data, AcerolaServerError)) isSuccess = false;
+
         this.res.headers.set('Content-Type', contentType);
         this.res.status = status;
-        this.res.data = data;
+        this.res.data = isSuccess ? data : data.toData();
         this.res.send();
 
-        this.runAfterResult(true);
+        this.runAfterResult(isSuccess);
     }
 
     private function runAfterResult(isSuccess:Bool):Void {

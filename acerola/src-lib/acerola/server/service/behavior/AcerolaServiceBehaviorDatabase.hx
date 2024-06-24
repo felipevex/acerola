@@ -1,7 +1,7 @@
 package acerola.server.service.behavior;
 
+import acerola.server.error.AcerolaServerError;
 import database.DatabaseSuccess;
-import acerola.server.error.AcerolaRequestError;
 import database.DatabaseError;
 import database.DatabaseRequest;
 import acerola.model.AcerolaCallback;
@@ -24,42 +24,41 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
         this.req.pool.closeTicket(this.ticket, !isSuccess);
     }
 
-    public function query<Q>(serverErrorCallback, query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, ?onError:(err:DatabaseError)->Void):Void {
+    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.req.pool.query(
             this.ticket,
             query,
             onComplete,
             function(err:DatabaseError):Void {
-                if (onError == null) AcerolaRequestError.SERVER_ERROR(err.message, serverErrorCallback);
-                else onError(err);
+                onError(AcerolaServerError.SERVER_ERROR(err.message));
             }
         );
     }
 
-    public function queryRun(serverErrorCallback, query:DatabaseRequest, onComplete:()->Void):Void {
+    public function queryRun(query:DatabaseRequest, onComplete:()->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.query(
-            serverErrorCallback,
             query,
-            function(success:DatabaseSuccess<Dynamic>):Void onComplete()
+            function(success:DatabaseSuccess<Dynamic>):Void onComplete(),
+            onError
         );
     }
 
-    public function querySelectOne<Q>(serverErrorCallback, query:DatabaseRequest, onRead:(data:Q)->Void):Void this.querySelect(serverErrorCallback, query, true, function(data:Array<Q>):Void onRead(data[0]));
+    public function querySelectOne<Q>(query:DatabaseRequest, onRead:(data:Q)->Void, onError:(err:AcerolaServerError)->Void):Void this.querySelect(query, true, function(data:Array<Q>):Void onRead(data[0]), onError);
 
-    public function querySelect<Q>(serverErrorCallback, query:DatabaseRequest, protectFrom404:Bool, onRead:(data:Array<Q>)->Void):Void {
+    public function querySelect<Q>(query:DatabaseRequest, protectFrom404:Bool, onRead:(data:Array<Q>)->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.query(
-            serverErrorCallback,
             query,
             function(success:DatabaseSuccess<Q>):Void {
                 if (protectFrom404 && success.length == 0) {
                     var error:String = 'Unable to find data: ${haxe.Json.stringify(query.data)}';
-                    AcerolaRequestError.NOT_FOUND(error, serverErrorCallback);
+                    onError(AcerolaServerError.NOT_FOUND(error));
                 } else {
                     var result:Array<Q> = [];
                     for (item in success.raw) result.push(item);
                     onRead(result);
                 }
-            }
+            },
+            onError
         );
     }
 }
