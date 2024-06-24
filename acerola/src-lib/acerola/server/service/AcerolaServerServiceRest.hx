@@ -10,9 +10,23 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         super(req, res);
 
-        this.asyncInit((success:Bool) -> {
+        try {
+            this.setup();
+        } catch (e:AcerolaRequestError) {
+            this.resultError(e.toString(), e.status, e.internal);
+            return;
+        } catch (e:Dynamic) {
+            this.resultError('Unexpected server error.', 500, Std.string(e));
+            return;
+        }
+
+        this.behavior.reset();
+        this.executeBehavior();
+    }
+
+    private function executeBehavior():Void {
+        if (!this.behavior.hasNext()) {
             try {
-                this.setup();
                 this.validate();
                 this.run();
             } catch (e:AcerolaRequestError) {
@@ -20,8 +34,19 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
             } catch (e:Dynamic) {
                 this.resultError('Unexpected server error.', 500, Std.string(e));
             }
+
+            return;
+        }
+        
+        var b = this.behavior.next();
+        
+        b.start({
+            onSuccess : this.executeBehavior,
+            onError : this.onBehaviorError
         });
     }
+
+    private function onBehaviorError(error:AcerolaResponseError):Void this.result(error, error.status, 'application/json');
 
     public function resultHtml(data:String, status:Int = 200):Void this.result(data, status, 'text/html; charset=utf-8');
     public function resultSuccess(data:S, status:Int = 200):Void this.result(data, status, 'application/json');
@@ -36,6 +61,11 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
         
         this.result(error, status, 'application/json');
         this.runAfterResult(false);
+    }
+
+    override private function runAfterResult(isSuccess:Bool):Void {
+        this.behavior.reset();
+        for (b in this.behavior) b.teardown(isSuccess);
     }
 
     override function runTimeout() {

@@ -1,5 +1,6 @@
 package acerola.server.service;
 
+import acerola.server.behavior.AcerolaBehaviorManager;
 import acerola.server.error.AcerolaRequestError;
 import anonstruct.AnonStructError;
 import anonstruct.AnonStruct;
@@ -14,13 +15,13 @@ class AcerolaServerService {
     private var bodyValidator:Class<AnonStruct>;
     private var paramsValidator:Class<AnonStruct>;
     
+    private var behavior:AcerolaBehaviorManager;
+
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         this.req = req;
         this.res = res;
-    }
 
-    public function asyncInit(cb:(success:Bool)->Void):Void {
-        haxe.Timer.delay(cb.bind(true), 0);
+        this.behavior = new AcerolaBehaviorManager(this.req, this.res);
     }
 
     public function setup():Void {

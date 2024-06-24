@@ -1,5 +1,6 @@
 package acerola.test.unit;
 
+import acerola.test.unit.behavior.TestAcerolaBehavior;
 import acerola.test.unit.path.AcerolaPathTest;
 import acerola.test.unit.token.TestAcerolaToken;
 import acerola.test.unit.database.DatabasePoolTest;
@@ -14,6 +15,7 @@ class AcerolaUnitTest {
 
         runner.addCase(new AcerolaPathTest());
         runner.addCase(new TestAcerolaToken());
+        runner.addCase(new TestAcerolaBehavior());
         // runner.addCase(new DatabasePoolTest());
         
         Report.create(runner);

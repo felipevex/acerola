@@ -40,6 +40,8 @@ class AcerolaRoute {
 
     private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response):Void {
         
+        var serviceInstance:AcerolaServerService;
+        
         var requestHeader:StringMap<String> = new StringMap<String>();
         for (key in Reflect.fields(xreq.headers)) requestHeader.set(key, Reflect.field(xreq.headers, key));
         
@@ -82,12 +84,17 @@ class AcerolaRoute {
             xres.status(res.status).send(res.data);
 
             res.send = () -> {
-                Sys.println('ERROR - Response already sent');
+                Sys.println('ERROR - Response already sent (${route})');
             };
         }
+        
 
-        var serviceInstance:AcerolaServerService = Type.createInstance(service, [req, res]);
-        res.timeout = haxe.Timer.delay(serviceInstance.runTimeout, 5000);
+        res.timeout = haxe.Timer.delay(() -> {
+            Sys.println('ERROR - Timeout reached (${route})');
+            serviceInstance.runTimeout();
+        }, 5000);
+
+        serviceInstance = Type.createInstance(service, [req, res]);
     }
     
     // public function registerProxy(verb:CrappRouteVerb, route:String, proxyURL:String):Void {
