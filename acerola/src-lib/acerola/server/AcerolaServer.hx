@@ -21,6 +21,13 @@ class AcerolaServer {
         this.route = new AcerolaRoute(this.express, connection);
     }
 
+    private function prevent404():Void {
+        this.express.get('*', this.custom404);
+        this.express.post('*', this.custom404);
+        this.express.put('*', this.custom404);
+        this.express.delete('*', this.custom404);
+    }
+
     private function createApplication():Void {
         this.express = Express.application();
 
@@ -49,6 +56,15 @@ class AcerolaServer {
                 Sys.println('Server running in port ${port}');
             }
         );
+
+        this.prevent404();
+    }
+
+    function custom404(req:Request, res:Response) {
+        var error:AcerolaServerError = AcerolaServerError.NOT_FOUND('Not Found', 'NOT_FOUND');
+        res.setHeader('Content-Type', 'application/json');
+        res.status(error.status);
+        res.send(error.toData());
     }
 
 

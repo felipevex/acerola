@@ -1,5 +1,7 @@
 package acerola.server.route;
 
+import acerola.server.service.AcerolaServerServiceRest;
+import acerola.request.AcerolaRequest;
 import database.DatabaseConnection;
 import database.DatabasePool;
 import acerola.request.AcerolaPath;
@@ -25,6 +27,12 @@ class AcerolaRoute {
         if (connection != null) this.database = new DatabasePool(connection);
     }
 
+    public function register<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>(request:Class<AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>>, service:Class<AcerolaServerServiceRest<RESPONSE_BODY>>):Void {
+        var requestInstance:AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> = Type.createInstance(request, []);
+        this.registerService(requestInstance.verb, requestInstance.path, cast service);
+    }
+
+
     // TIP : Use /my/route/[id:Int]/[name:String]
     public function registerService(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>):Void {
         Sys.println('ROUTE - ${verb} ${route} ${Type.getClassName(service)}');
@@ -40,7 +48,7 @@ class AcerolaRoute {
 
     private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response):Void {
         
-        var serviceInstance:AcerolaServerService;
+        var serviceInstance:AcerolaServerService = null;
         
         var requestHeader:StringMap<String> = new StringMap<String>();
         for (key in Reflect.fields(xreq.headers)) requestHeader.set(key, Reflect.field(xreq.headers, key));

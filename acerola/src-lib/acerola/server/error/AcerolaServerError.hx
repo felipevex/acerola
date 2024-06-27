@@ -21,7 +21,7 @@ class AcerolaServerError {
         else return '${this.errorSource}: ${this.message}';
     }
 
-    public function toData():Dynamic {
+    public function toData():AcerolaServerErrorData {
         return {
             status : this.status,
             message : this.message,
