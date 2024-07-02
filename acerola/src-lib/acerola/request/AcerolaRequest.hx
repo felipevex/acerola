@@ -15,8 +15,12 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
         this.path = path;
     }
 
+    public function execute(data:AcerolaRequestData<REQUEST_PARAMS, REQUEST_BODY>, response:(response:AcerolaResponse<RESPONSE_BODY>)->Void):Void {
+        this.request(data.url, response, data.params, data.body, data.headers);
+    }
+
     // TODO - accept other post body types - fixed in application/json
-    public function request(domain:String, response:(response:AcerolaResponse<RESPONSE_BODY>)->Void, ?params:REQUEST_PARAMS, ?body:REQUEST_BODY, ?headers:StringMap<String>):Void {
+    private function request(domain:String, response:(response:AcerolaResponse<RESPONSE_BODY>)->Void, ?params:REQUEST_PARAMS, ?body:REQUEST_BODY, ?headers:StringMap<String>):Void {
         var url:String = domain + path.parse(params);
 
         var status:Int = 0;

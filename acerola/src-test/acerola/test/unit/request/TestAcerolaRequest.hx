@@ -1,5 +1,6 @@
 package acerola.test.unit.request;
 
+import acerola.request.AcerolaRequestData;
 import haxe.ds.StringMap;
 import project.api.service.test.requests.ExampleRequests.GetTestGetHeader;
 import project.api.service.test.model.TestGetHeaderServiceData;
@@ -19,7 +20,8 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetHelloWorldJson = new GetHelloWorldJson();
 
-        var valueDomain:String = 'http://127.0.0.1:1000';
+        var valueRequestData:AcerolaRequestData<Bool, Bool> = new AcerolaRequestData<Bool, Bool>()
+            .setUrl('http://127.0.0.1:1000');
 
         var resultResult:{hello:String};
         var expectedResult:{hello:String} = {
@@ -29,8 +31,8 @@ class TestAcerolaRequest extends Test {
         var assert:()->Void = null;
 
         // ACT
-        request.request(
-            valueDomain,
+        request.execute(
+            valueRequestData,
             (response:AcerolaResponse<{hello:String}>) -> {
                 resultResult = response.result;
                 assert();
@@ -48,11 +50,12 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetTestGet = new GetTestGet();
 
-        var valueDomain:String = 'http://127.0.0.1:1000';
-        var valueParams:TestGetServiceData = {
-            id : 1,
-            hello : 'world'
-        }
+        var valueRequestData:AcerolaRequestData<TestGetServiceData, Bool> = new AcerolaRequestData<TestGetServiceData, Bool>()
+            .setUrl('http://127.0.0.1:1000')
+            .setParams({
+                id : 1,
+                hello : 'world'
+            });
 
         var resultResult:TestGetServiceData;
         var expectedResult:TestGetServiceData = {
@@ -63,13 +66,12 @@ class TestAcerolaRequest extends Test {
         var assert:()->Void = null;
 
         // ACT
-        request.request(
-            valueDomain,
+        request.execute(
+            valueRequestData,
             (response:AcerolaResponse<TestGetServiceData>) -> {
                 resultResult = response.result;
                 assert();
-            },
-            valueParams
+            }
         );
 
         // ASSERT
@@ -84,11 +86,12 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:PostTestPost = new PostTestPost();
 
-        var valueDomain:String = 'http://127.0.0.1:1000';
-        var valueBody:TestPostServiceData = {
-            id : 1,
-            hello : 'world'
-        }
+        var valueRequestData:AcerolaRequestData<Bool, TestPostServiceData> = new AcerolaRequestData<Bool, TestPostServiceData>()
+            .setUrl('http://127.0.0.1:1000')
+            .setBody({
+                id : 1,
+                hello : 'world'
+            });
 
         var resultResult:TestPostServiceData;
         var expectedResult:TestPostServiceData = {
@@ -99,14 +102,12 @@ class TestAcerolaRequest extends Test {
         var assert:()->Void = null;
 
         // ACT
-        request.request(
-            valueDomain,
+        request.execute(
+            valueRequestData,
             (response:AcerolaResponse<TestGetServiceData>) -> {
                 resultResult = response.result;
                 assert();
-            },
-            
-            valueBody
+            }
         );
 
         // ASSERT
@@ -121,11 +122,9 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetTestGetHeader = new GetTestGetHeader();
 
-        var valueDomain:String = 'http://127.0.0.1:1000';
-        
-        var valueHeaders:StringMap<String> = [
-            "header" => "value"
-        ];
+        var valueRequestData:AcerolaRequestData<Bool, Bool> = new AcerolaRequestData<Bool, Bool>()
+            .setUrl('http://127.0.0.1:1000')
+            .setHeader("header", "value");
 
         var resultResult:TestGetHeaderServiceData;
         var expectedResult:TestGetHeaderServiceData = {
@@ -135,13 +134,12 @@ class TestAcerolaRequest extends Test {
         var assert:()->Void = null;
 
         // ACT
-        request.request(
-            valueDomain,
+        request.execute(
+            valueRequestData,
             (response:AcerolaResponse<TestGetHeaderServiceData>) -> {
                 resultResult = response.result;
                 assert();
-            },
-            valueHeaders
+            }
         );
 
         // ASSERT
