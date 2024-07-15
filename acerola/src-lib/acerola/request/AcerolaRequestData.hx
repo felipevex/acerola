@@ -12,7 +12,7 @@ class AcerolaRequestData<REQUEST_PARAMS, REQUEST_BODY> {
     
 
     public function new() {
-        
+        this.url = '';
     }
 
     public function setUrl(value:String):AcerolaRequestData<REQUEST_PARAMS, REQUEST_BODY> {

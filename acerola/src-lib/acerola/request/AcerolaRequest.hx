@@ -28,7 +28,9 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
 
         var processData:(data:String)->Dynamic = (data:String) -> {
             var result:Dynamic = data;
-            var contentType:String = http.responseHeaders.get('content-type');
+            var contentType:String = http.responseHeaders == null 
+                ? 'application/json' 
+                : http.responseHeaders.get('content-type');
 
             try {
                 result = contentType.indexOf('application/json') != -1 ? haxe.Json.parse(data) : data;
