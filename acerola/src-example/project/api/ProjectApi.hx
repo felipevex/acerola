@@ -1,6 +1,6 @@
 package project.api;
 
-import project.api.service.test.requests.ExampleRequests.GetDatabase;
+import project.api.service.test.requests.ExampleRequests.PostDatabase;
 import project.api.service.test.requests.ExampleRequests.PostTimeout;
 import project.api.service.test.requests.ExampleRequests.GetHelloWorldText;
 import project.api.service.test.TestGetHeaderService;
@@ -30,14 +30,14 @@ class ProjectApi {
         }
         
         var server:AcerolaServer = new AcerolaServer(connection);
-
+        
         server.route.register(GetHelloWorldJson, HelloWorldJsonService);
         server.route.register(PostTestPost, TestPostService);
         server.route.register(GetTestGet, TestGetService);
         server.route.register(GetTestGetHeader, TestGetHeaderService);
         server.route.register(GetHelloWorldText, HelloWorldTextService);
         server.route.register(PostTimeout, TestTimeoutService);
-        server.route.register(GetDatabase, TestDatabaseService);
+        server.route.register(PostDatabase, TestDatabaseService);
         
         server.start();
         

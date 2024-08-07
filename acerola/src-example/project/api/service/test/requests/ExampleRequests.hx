@@ -43,8 +43,8 @@ class PostTimeout extends AcerolaRequest<Dynamic, Bool, Bool> {
     }
 }
 
-class GetDatabase extends AcerolaRequest<{test:Int}, Bool, Bool>  {
+class PostDatabase extends AcerolaRequest<Dynamic, Bool, Bool>  {
     public function new() {
-        super(AcerolaServerVerbsType.GET, '/v1/database');
+        super(AcerolaServerVerbsType.POST, '/v1/database');
     }
 }

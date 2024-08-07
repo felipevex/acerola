@@ -1,5 +1,6 @@
 package acerola.server.service;
 
+import acerola.server.error.AcerolaServerError;
 import acerola.server.service.behavior.AcerolaServiceBehaviorDatabase;
 import acerola.server.model.AcerolaServerResponseData;
 import acerola.server.model.AcerolaServerRequestData;
@@ -20,11 +21,14 @@ class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
         this.behavior.addBehavior(AcerolaServiceBehaviorDatabase);
     }
 
-    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void):Void {
+    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(error:DatabaseError)->Void):Void {
         this.behavior.get(AcerolaServiceBehaviorDatabase).query(
             query,
             onComplete,
-            this.resultError
+            (err:DatabaseError) -> {
+                if (onError == null) this.resultError(AcerolaServerError.SERVER_ERROR(err.message));
+                else onError(err);
+            }
         );
     }
 

@@ -24,22 +24,22 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
         this.req.pool.closeTicket(this.ticket, !isSuccess);
     }
 
-    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(err:AcerolaServerError)->Void):Void {
+    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(error:DatabaseError)->Void):Void {
         this.req.pool.query(
             this.ticket,
             query,
             onComplete,
-            function(err:DatabaseError):Void {
-                onError(AcerolaServerError.SERVER_ERROR(err.message));
-            }
+            onError
         );
     }
 
     public function queryRun(query:DatabaseRequest, onComplete:()->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.query(
             query,
-            function(success:DatabaseSuccess<Dynamic>):Void onComplete(),
-            onError
+            (success:DatabaseSuccess<Dynamic>) -> onComplete(),
+            (err:DatabaseError) -> {
+                onError(AcerolaServerError.SERVER_ERROR(err.message));
+            }
         );
     }
 
@@ -58,7 +58,9 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
                     onRead(result);
                 }
             },
-            onError
+            (err:DatabaseError) -> {
+                onError(AcerolaServerError.SERVER_ERROR(err.message));
+            }
         );
     }
 }
