@@ -1,7 +1,6 @@
 package project.api.service.test;
 
 import project.api.service.test.model.TestGetServiceData;
-import anonstruct.AnonStruct;
 import acerola.server.service.AcerolaServerServiceRest;
 
 class TestGetService extends AcerolaServerServiceRest<TestGetServiceData> {

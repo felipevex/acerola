@@ -16,4 +16,6 @@ typedef AcerolaServerRequestData = {
     var user_agent:String;
     var moment:DateTime;
     var pool:DatabasePool;
+    var path:String;
+    var url:String;
 }

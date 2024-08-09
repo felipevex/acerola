@@ -1,5 +1,7 @@
 package project.api;
 
+import project.api.service.test.TestGetStarService;
+import acerola.server.model.AcerolaServerVerbsType;
 import project.api.service.test.requests.ExampleRequests.PostDatabase;
 import project.api.service.test.requests.ExampleRequests.PostTimeout;
 import project.api.service.test.requests.ExampleRequests.GetHelloWorldText;
@@ -38,6 +40,8 @@ class ProjectApi {
         server.route.register(GetHelloWorldText, HelloWorldTextService);
         server.route.register(PostTimeout, TestTimeoutService);
         server.route.register(PostDatabase, TestDatabaseService);
+
+        server.route.registerService(AcerolaServerVerbsType.GET, '/star/*', TestGetStarService);
         
         server.start();
         

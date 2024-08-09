@@ -56,6 +56,8 @@ class AcerolaRoute {
         var req:AcerolaServerRequestData = {
             verb: verb,
             route: route,
+            path : xreq.path,
+            url : xreq.originalUrl,
             body: xreq.body,
             params : route.extractCleanData(xreq.params),
             headers : requestHeader,
