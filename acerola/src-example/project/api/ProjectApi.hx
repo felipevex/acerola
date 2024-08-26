@@ -28,7 +28,8 @@ class ProjectApi {
             user : 'root',
             password : 'mysql_root_password',
             port : 3306,
-            max_connections: 64
+            max_connections: 64,
+            auto_json_parse: true
         }
         
         var server:AcerolaServer = new AcerolaServer(connection);

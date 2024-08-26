@@ -29,7 +29,7 @@ extern class MysqlConnection {
 
     public function destroy():Void;
 
-    inline public function queryResult<T>(sql:String, callback:MysqlError->MysqlResultSet<T>->Void, ?timeout:Int):Void {
+    inline public function queryResult<T>(sql:String, callback:MysqlError->MysqlResultSet<T>->Void, ?timeout:Int, ?autoJsonParse:Bool):Void {
         this.query(
             {
                 sql : sql,
@@ -38,7 +38,7 @@ extern class MysqlConnection {
             function(err:MysqlError, r:Dynamic, f:Array<MysqlFieldPacket>):Void {
                 if (err == null) {
 
-                    var result:MysqlResultSet<T> = new MysqlResultSet<T>(r, f);
+                    var result:MysqlResultSet<T> = new MysqlResultSet<T>(r, f, autoJsonParse);
                     callback(null, result);
 
                 } else callback(err, cast []);
@@ -63,13 +63,13 @@ extern class MysqlConnectionPool {
 
     public function end(?callback:(error:MysqlError)->Void):Void;
 
-    inline public function queryResult<T>(sql:String, callback:MysqlError->MysqlResultSet<T>->Void):Void {
+    inline public function queryResult<T>(sql:String, callback:MysqlError->MysqlResultSet<T>->Void, autoJsonParse:Bool):Void {
         this.query(
             sql,
             function(err:MysqlError, r:Dynamic, f:Array<MysqlFieldPacket>):Void {
                 if (err == null) {
 
-                    var result:MysqlResultSet<T> = new MysqlResultSet<T>(r, f);
+                    var result:MysqlResultSet<T> = new MysqlResultSet<T>(r, f, autoJsonParse);
                     callback(null, result);
 
                 } else callback(err, cast []);
@@ -149,18 +149,40 @@ class MysqlResultSet<T> implements ResultSet {
     private var __currentPosition:Int = 0;
 
     private var __cache_fields:Array<String>;
+    private var __cache_json_fields:Array<String>;
+
+    private var autoJsonParse:Bool;
 
     @:allow(node.mysql.MysqlConnection.queryResult)
     @:allow(node.mysql.MysqlConnectionPool.queryResult)
-    private function new(r:Dynamic, f:Array<MysqlFieldPacket>) {
-
+    private function new(r:Dynamic, f:Array<MysqlFieldPacket>, autoJsonParse:Bool) {
+        this.autoJsonParse = autoJsonParse;
         this.__r = r;
         this.__f = f;
         this.__currentPosition = -1;
 
     }
 
-    public function clone():MysqlResultSet<T> return new MysqlResultSet<T>(this.__r, this.__f);
+    private function performAutoJsonParse(row:Dynamic):Dynamic {
+        if (row == null || !this.autoJsonParse || this.__f == null) return row;
+
+        if (this.__cache_json_fields == null) {
+            this.__cache_json_fields = [];
+
+            for (field in this.__f) if (field.type == 245) this.__cache_json_fields.push(field.name);
+        }
+
+        for (field in this.__cache_json_fields) {
+            try {
+                var value:Dynamic = Reflect.field(row, field);
+                if (value != null && Std.isOfType(value, String)) Reflect.setField(row, field, haxe.Json.parse(value));
+            } catch (e) {}
+        }
+
+        return row;
+    }
+
+    public function clone():MysqlResultSet<T> return new MysqlResultSet<T>(this.__r, this.__f, false);
 
     public var insertId(get, null):Int;
     public var insertIds(get, null):Array<Int>;
@@ -194,12 +216,12 @@ class MysqlResultSet<T> implements ResultSet {
 
     public function next():T {
         this.__currentPosition++;
-        return this.__r[this.__currentPosition];
+        return this.performAutoJsonParse(this.__r[this.__currentPosition]);
     }
 
     public function results():List<T> {
         var l:List<T> = new List<T>();
-        for (i in 0 ... this.__r.length) l.add(this.__r[i]);
+        for (i in 0 ... this.__r.length) l.add(this.performAutoJsonParse(this.__r[i]));
         return l;
     }
 

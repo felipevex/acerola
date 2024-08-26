@@ -26,6 +26,8 @@ class DatabasePool {
     public function new(model:DatabaseConnection) {
         this.model = model;
 
+        if (this.model.auto_json_parse == null) this.model.auto_json_parse = false;
+
         this.map = new StringMap<DatabasePoolConnection>();
         this.cache = new StringMap<DatabasePoolCache>();
     }
@@ -117,10 +119,15 @@ class DatabasePool {
     }
 
     private function runSimpleQuery(conn:MysqlConnection, query:String, cb:(err:Bool)->Void) {
-        conn.queryResult(query, function(err:MysqlError, result:MysqlResultSet<Dynamic>):Void {
-            if (err != null) cb(true);
-            else cb(false);
-        });
+        conn.queryResult(
+            query, 
+            function(err:MysqlError, result:MysqlResultSet<Dynamic>):Void {
+                if (err != null) cb(true);
+                else cb(false);
+            }, 
+            null,
+            this.model.auto_json_parse
+        );
     }
 
     private function killTicket(ticket:String, destroyConnection:Bool, ?callback:()->Void, ?rollback:Bool):Void {
@@ -216,6 +223,8 @@ class DatabasePool {
                 request.timeout == null
                     ? 20000
                     : request.timeout
+                ,
+                this.model.auto_json_parse
             );
         }
 
