@@ -158,7 +158,7 @@ class DatabasePool {
 
     public function query<T>(ticket:String, request:DatabaseRequest, onSuccess:(data:DatabaseSuccess<T>)->Void, ?onError:(err:DatabaseError)->Void):Void {
         if (!this.isOpen(ticket)) {
-            haxe.Timer.delay(function():Void {
+            haxe.Timer.delay(() -> {
                 if (onError != null) onError(
                     this.generateError(ticket, request.query, ERROR_INVALID_TICKET, request.error, 'Invalid database ticket.')
                 );
@@ -180,7 +180,7 @@ class DatabasePool {
             var queryFinished:Bool = false;
             var checkConnectionKilled:()->Void;
 
-            checkConnectionKilled = function():Void {
+            checkConnectionKilled = () -> {
                 if (!queryFinished) {
                     if (this.isOpen(ticket)) haxe.Timer.delay(checkConnectionKilled, 100);
                     else {

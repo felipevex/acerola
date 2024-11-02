@@ -1,4 +1,3 @@
-version: '3'
 services:
 
     haxe:
@@ -21,4 +20,15 @@ services:
             MYSQL_ALLOW_EMPTY_PASSWORD: "no"
             MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
         ports:
-            - "${MYSQL_PORT}:3306"
+            - "${MYSQL_PORT8}:3306"
+
+    mysql9:
+        restart: always
+        build:
+            context: ./docker/mysql9/
+            dockerfile: dockerfile
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+        ports:
+            - "${MYSQL_PORT9}:3306"

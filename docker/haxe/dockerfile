@@ -54,6 +54,7 @@ RUN npm install -g nodemon@2.0.20
 RUN npm install -g minify@7.0.2
 RUN npm install -g express@4.18.1
 RUN npm install -g mysql@2.18.1
+RUN npm install -g mysql2@3.11.3
 RUN npm install -g cors@2.8.5
 RUN npm install -g aws-sdk@2.1218.0
 RUN npm install -g --unsafe-perm sharp@0.31.0

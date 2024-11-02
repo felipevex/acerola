@@ -1,0 +1,8 @@
+FROM mysql:9.1
+
+COPY ./config/mysqld.cnf /etc/mysql/conf.d/config-file.cnf
+
+# TODOS ARQUIVOS SH OU SQL SERAO EXECUTADOS EM ORDEM 
+# ALFABETICAS QUANDO COLOCADO NA PASTA docker-entrypoint-initdb.d
+
+COPY ./database/00.sql /docker-entrypoint-initdb.d/00.sql

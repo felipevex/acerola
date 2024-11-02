@@ -3,7 +3,7 @@ package node.mysql;
 import Array;
 import sys.db.ResultSet;
 
-@:native("require('mysql')")
+@:native("require('mysql2')")
 extern class Mysql {
 
     static public function createConnection(options:MysqlConnectionOptions):MysqlConnection;
@@ -14,7 +14,7 @@ extern class Mysql {
 }
 
 extern class MysqlConnection {
-
+    
     public function connect(onError:MysqlError->Void):Void;
 
     // callback = error, results, fields

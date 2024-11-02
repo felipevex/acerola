@@ -10,7 +10,7 @@ import helper.kits.StringKit;
 import utest.Assert;
 import utest.Async;
 
-class DatabasePoolTest extends Test {
+class Database9PoolTest extends Test {
 
     private var connection:DatabaseConnection;
     private var pool:DatabasePool;
@@ -20,7 +20,7 @@ class DatabasePoolTest extends Test {
         this.testTable = 'test_${StringKit.generateRandomHex(6)}';
 
         this.connection = {
-            host : 'mysql',
+            host : 'mysql9',
             user : 'root',
             password : 'mysql_root_password',
             port : 3306,
