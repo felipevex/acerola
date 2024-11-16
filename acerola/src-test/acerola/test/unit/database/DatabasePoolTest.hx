@@ -596,4 +596,219 @@ class DatabasePoolTest extends Test {
             async.done();
         }
     }
+
+    function test_insert_query_show_set_hascreatedsomething_to_true(async:Async) {
+        // ARRANGE
+        var resultData:DatabaseSuccess<Dynamic>;
+        var expectedHasCreatedSomething:Bool = true;
+        var expectedHasUpdatedSomething:Bool = false;
+
+        var assert:()->Void = null;
+
+        var query:DatabaseRequest = {
+            query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
+            data : {
+                unq : StringKit.generateRandomHex(30),
+                name : 'item name'
+            }
+        }
+
+        // ACT
+        this.pool.getTicket(function(ticket:String):Void {
+
+            this.pool.query(
+                ticket,
+                query,
+                (data:DatabaseSuccess<Dynamic>) -> {
+                    resultData = data;
+                    assert();
+                }
+            );
+
+        });
+
+        // ASSERT
+        assert = function():Void {
+            Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            async.done();
+        }
+    }
+
+    function test_update_query_show_set_hasupdatedsomething_to_true(async:Async) {
+        // ARRANGE
+        var resultData:DatabaseSuccess<Dynamic>;
+        var expectedHasCreatedSomething:Bool = false;
+        var expectedHasUpdatedSomething:Bool = true;
+
+        var assert:()->Void = null;
+
+        var query_insert:DatabaseRequest = {
+            query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
+            data : {
+                unq : StringKit.generateRandomHex(30),
+                name : 'item name'
+            }
+        }
+
+        var query_update:DatabaseRequest = {
+            query : 'UPDATE tests.my_table SET name = :name WHERE unq = :unq',
+            data : {
+                unq : query_insert.data.unq,
+                name : 'novo nome'
+            }
+        }
+
+        // ACT
+        this.pool.getTicket(function(ticket:String):Void {
+
+            this.pool.query(
+                ticket,
+                query_insert,
+                (data:DatabaseSuccess<Dynamic>) -> {
+                    this.pool.query(
+                        ticket,
+                        query_update,
+                        (data:DatabaseSuccess<Dynamic>) -> {
+                            resultData = data;
+                            assert();
+                        }
+                    );
+                }
+            );
+
+        });
+
+        // ASSERT
+        assert = function():Void {
+            Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            async.done();
+        }
+    }
+
+    function test_update_query_with_same_value_shold_not_update_something(async:Async) {
+        // ARRANGE
+        var resultData:DatabaseSuccess<Dynamic>;
+        var expectedHasCreatedSomething:Bool = false;
+        var expectedHasUpdatedSomething:Bool = false;
+
+        var assert:()->Void = null;
+
+        var query_insert:DatabaseRequest = {
+            query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
+            data : {
+                unq : StringKit.generateRandomHex(30),
+                name : 'item name'
+            }
+        }
+
+        var query_update:DatabaseRequest = {
+            query : 'UPDATE tests.my_table SET name = :name WHERE unq = :unq',
+            data : {
+                unq : query_insert.data.unq,
+                name : query_insert.data.name
+            }
+        }
+
+        // ACT
+        this.pool.getTicket(function(ticket:String):Void {
+
+            this.pool.query(
+                ticket,
+                query_insert,
+                (data:DatabaseSuccess<Dynamic>) -> {
+                    this.pool.query(
+                        ticket,
+                        query_update,
+                        (data:DatabaseSuccess<Dynamic>) -> {
+                            resultData = data;
+                            assert();
+                        }
+                    );
+                }
+            );
+
+        });
+
+        // ASSERT
+        assert = function():Void {
+            Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            async.done();
+        }
+    }
+
+    function test_update_invalid_update_should_not_set_update_something(async:Async) {
+        // ARRANGE
+        var resultData:DatabaseSuccess<Dynamic>;
+        var expectedHasCreatedSomething:Bool = false;
+        var expectedHasUpdatedSomething:Bool = false;
+
+        var assert:()->Void = null;
+
+        var query_update:DatabaseRequest = {
+            query : 'UPDATE tests.my_table SET name = "novo nome" WHERE unq = :unq',
+            data : {
+                unq : 'invalid unq',
+                name : 'item name'
+            }
+        }
+
+        // ACT
+        this.pool.getTicket(function(ticket:String):Void {
+
+            this.pool.query(
+                ticket,
+                query_update,
+                (data:DatabaseSuccess<Dynamic>) -> {
+                    resultData = data;
+                    assert();
+                }
+            );
+
+        });
+
+        // ASSERT
+        assert = function():Void {
+            Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            async.done();
+        }
+    }
+
+    function test_select_query_show_set_hascreatedsomething_to_false(async:Async) {
+        // ARRANGE
+        var resultData:DatabaseSuccess<Dynamic>;
+        var expectedHasCreatedSomething:Bool = false;
+        var expectedHasUpdatedSomething:Bool = false;
+
+        var assert:()->Void = null;
+
+        var query:DatabaseRequest = {
+            query : 'SELECT * FROM tests.my_table LIMIT 1',
+            data : {}
+        }
+
+        // ACT
+        this.pool.getTicket(function(ticket:String):Void {
+
+            this.pool.query(
+                ticket,
+                query,
+                (data:DatabaseSuccess<Dynamic>) -> {
+                    resultData = data;
+                    assert();
+                }
+            );
+
+        });
+
+        // ASSERT
+        assert = function():Void {
+            Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            async.done();
+        }
+    }
 }
