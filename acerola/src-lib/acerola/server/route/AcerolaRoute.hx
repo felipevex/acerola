@@ -21,10 +21,9 @@ class AcerolaRoute {
     private var express:Application;
     private var database:DatabasePool;
 
-    public function new(express:Application, connection:DatabaseConnection) {
+    public function new(express:Application, database:DatabasePool) {
         this.express = express;
-
-        if (connection != null) this.database = new DatabasePool(connection);
+        this.database = database;
     }
 
     public function register<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>(request:Class<AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>>, service:Class<AcerolaServerServiceRest<RESPONSE_BODY>>):Void {

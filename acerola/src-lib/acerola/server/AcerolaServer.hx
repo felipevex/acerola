@@ -1,5 +1,6 @@
 package acerola.server;
 
+import database.DatabasePool;
 import acerola.server.error.AcerolaServerError;
 import database.DatabaseConnection;
 import node.express.Response;
@@ -13,12 +14,17 @@ class AcerolaServer {
     private var express:Application;
 
     public var serverStarted:Bool;
+
     public var route:AcerolaRoute;
+    public var database:DatabasePool;
 
     public function new(?connection:DatabaseConnection) {
         this.serverStarted = false;
         this.createApplication();
-        this.route = new AcerolaRoute(this.express, connection);
+
+        if (connection != null) this.database = new DatabasePool(connection);
+
+        this.route = new AcerolaRoute(this.express, this.database);
     }
 
     private function prevent404():Void {
