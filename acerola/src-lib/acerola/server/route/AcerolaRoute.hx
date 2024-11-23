@@ -2,7 +2,6 @@ package acerola.server.route;
 
 import acerola.server.service.AcerolaServerServiceRest;
 import acerola.request.AcerolaRequest;
-import database.DatabaseConnection;
 import database.DatabasePool;
 import acerola.request.AcerolaPath;
 import datetime.DateTime;
@@ -79,11 +78,15 @@ class AcerolaRoute {
             status: 200,
             data: null,
             send : null,
-            timeout : null
+            timeout : null,
+            isDone : false
         }
 
         res.headers.set('Content-Type', 'text/plain');
         res.send = () -> {
+            if (res.isDone) return;
+            res.isDone = true;
+            
             if (res.timeout != null) {
                 res.timeout.stop();
                 res.timeout = null;

@@ -511,7 +511,7 @@ class DatabasePoolTest extends Test {
         var expectedErrorCode:String = 'PROTOCOL_SEQUENCE_TIMEOUT';
         var ticketTimeOut:Int = 5;
         var query:DatabaseRequest = {
-            query : "SELECT benchmark(10000000, md5('when will it end?'));",
+            query : "SELECT benchmark(1000000, md5('when will it end?'));",
             cache : true,
             cache_timeout : 50,
             timeout : 500

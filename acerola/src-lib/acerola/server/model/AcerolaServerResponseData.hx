@@ -9,4 +9,6 @@ typedef AcerolaServerResponseData = {
     var data:Dynamic;
     var send:()->Void;
     var timeout:Timer;
+
+    var isDone:Bool;
 }
