@@ -206,6 +206,7 @@ class DatabasePool {
                         var resultSuccess:DatabaseSuccess<T> = {
                             hasCreatedSomething : (result.insertId != null && result.insertId > 0),
                             hasUpdatedSomething : (result.changedRows != null && result.changedRows > 0),
+                            hasAffectedSomething : (result.affectedRows != null && result.affectedRows > 0),
                             createdId : result.insertId,
                             raw : result,
                             length : result.length

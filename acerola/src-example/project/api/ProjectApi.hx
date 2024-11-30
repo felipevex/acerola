@@ -24,7 +24,7 @@ class ProjectApi {
     static public function main() {
 
         var connection:DatabaseConnection = {
-            host : 'mysql',
+            host : 'mysql9',
             user : 'root',
             password : 'mysql_root_password',
             port : 3306,

@@ -692,6 +692,7 @@ class DatabasePoolTest extends Test {
         var resultData:DatabaseSuccess<Dynamic>;
         var expectedHasCreatedSomething:Bool = false;
         var expectedHasUpdatedSomething:Bool = false;
+        var expectedHasAffectedSomething:Bool = true;
 
         var assert:()->Void = null;
 
@@ -735,6 +736,7 @@ class DatabasePoolTest extends Test {
         assert = function():Void {
             Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
             Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            Assert.equals(expectedHasAffectedSomething, resultData.hasAffectedSomething);
             async.done();
         }
     }
@@ -744,6 +746,7 @@ class DatabasePoolTest extends Test {
         var resultData:DatabaseSuccess<Dynamic>;
         var expectedHasCreatedSomething:Bool = false;
         var expectedHasUpdatedSomething:Bool = false;
+        var expectedHasAffectedSomething:Bool = false;
 
         var assert:()->Void = null;
 
@@ -773,6 +776,7 @@ class DatabasePoolTest extends Test {
         assert = function():Void {
             Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
             Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
+            Assert.equals(expectedHasAffectedSomething, resultData.hasAffectedSomething);
             async.done();
         }
     }
@@ -782,6 +786,7 @@ class DatabasePoolTest extends Test {
         var resultData:DatabaseSuccess<Dynamic>;
         var expectedHasCreatedSomething:Bool = false;
         var expectedHasUpdatedSomething:Bool = false;
+        var expectedHasAffectedSomething:Bool = false;
 
         var assert:()->Void = null;
 
@@ -808,6 +813,7 @@ class DatabasePoolTest extends Test {
         assert = function():Void {
             Assert.equals(expectedHasCreatedSomething, resultData.hasCreatedSomething);
             Assert.equals(expectedHasUpdatedSomething, resultData.hasUpdatedSomething);
+            Assert.equals(expectedHasAffectedSomething, resultData.hasAffectedSomething);
             async.done();
         }
     }
