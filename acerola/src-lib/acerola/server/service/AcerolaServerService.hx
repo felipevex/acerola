@@ -59,16 +59,20 @@ class AcerolaServerService {
     }
     
     private function result(data:Dynamic, status:Int, contentType:String):Void {
-        var isSuccess:Bool = true;
+        var isSuccess:Bool = Std.isOfType(data, AcerolaServerError) ? false : true;
 
-        if (Std.isOfType(data, AcerolaServerError)) isSuccess = false;
+        this.runBeforeResult(isSuccess, () -> {
+            this.res.headers.set('Content-Type', contentType);
+            this.res.status = status;
+            this.res.data = isSuccess ? data : data.toData();
+            this.res.send();
 
-        this.res.headers.set('Content-Type', contentType);
-        this.res.status = status;
-        this.res.data = isSuccess ? data : data.toData();
-        this.res.send();
+            this.runAfterResult(isSuccess);
+        });
+    }
 
-        this.runAfterResult(isSuccess);
+    private function runBeforeResult(isSuccess:Bool, callback:()->Void):Void {
+        haxe.Timer.delay(callback, 0);
     }
 
     private function runAfterResult(isSuccess:Bool):Void {

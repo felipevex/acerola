@@ -10,8 +10,6 @@ import database.DatabaseRequest;
 
 class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
 
-    private var ticket:String;
-
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         super(req, res);
     }
@@ -58,8 +56,13 @@ class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
         );
     }
 
+    override function runBeforeResult(isSuccess:Bool, callback:() -> Void) {
+        super.runBeforeResult(isSuccess, () -> {
+            this.behavior.get(AcerolaServiceBehaviorDatabase).closeDatabaseTicket(callback, !isSuccess);
+        });
+    }
+
     override function runAfterResult(isSuccess:Bool):Void {
-        this.req.pool.closeTicket(this.ticket, !isSuccess);
         super.runAfterResult(isSuccess);
     }
 

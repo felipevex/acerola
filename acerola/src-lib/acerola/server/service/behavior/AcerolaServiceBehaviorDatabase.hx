@@ -21,7 +21,11 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
     }
 
     override function teardown(isSuccess:Bool):Void {
-        this.req.pool.closeTicket(this.ticket, !isSuccess);
+        this.closeDatabaseTicket(() -> {}, isSuccess);
+    }
+
+    public function closeDatabaseTicket(callback:()->Void, isSuccess:Bool):Void {
+        this.req.pool.closeTicket(this.ticket, callback, !isSuccess);
     }
 
     public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(error:DatabaseError)->Void):Void {

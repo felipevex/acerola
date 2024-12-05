@@ -1,5 +1,6 @@
 package acerola.server.route;
 
+import helper.kits.DateKit;
 import acerola.server.service.AcerolaServerServiceRest;
 import acerola.request.AcerolaRequest;
 import database.DatabasePool;
@@ -46,6 +47,7 @@ class AcerolaRoute {
 
     private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response):Void {
         
+        var requestMoment:Date = Date.now();
         var serviceInstance:AcerolaServerService = null;
         
         var requestHeader:StringMap<String> = new StringMap<String>();
@@ -59,7 +61,7 @@ class AcerolaRoute {
             body: xreq.body,
             params : route.extractCleanData(xreq.params),
             headers : requestHeader,
-            moment : DateTime.now(),
+            moment : requestMoment,
             hostname: (
                 xreq.hostname == null 
                 ? 'NO_HOSTNAME'
@@ -86,12 +88,14 @@ class AcerolaRoute {
         res.send = () -> {
             if (res.isDone) return;
             res.isDone = true;
+
+            this.printExecution(verb, route, res.status, Math.floor(Date.now().getTime() - requestMoment.getTime()));
             
             if (res.timeout != null) {
                 res.timeout.stop();
                 res.timeout = null;
             }
-
+            
             for (key in res.headers.keys()) xres.set(key, res.headers.get(key));
             xres.status(res.status).send(res.data);
 
@@ -108,6 +112,13 @@ class AcerolaRoute {
 
         serviceInstance = Type.createInstance(service, [req, res]);
     }
+
+    private function printExecution(verb:AcerolaServerVerbsType, route:AcerolaPath, status:Int, time:Int):Void {
+        var now:String = DateKit.getDateTimeMysqlFormat(DateTime.now(), true);
+        Sys.println('>> ${now} ${pad(verb, 6)} ${pad(Std.string(time), 5)}ms ${status} ${route}');
+    }
+
+    inline private function pad(value:String, len:Int):String return StringTools.lpad(value, ' ', len);
     
     // public function registerProxy(verb:CrappRouteVerb, route:String, proxyURL:String):Void {
     //     Crapp.S.controller.print(1, 'PROXY - ${verb} ${route} ${proxyURL}');

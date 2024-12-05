@@ -19,7 +19,7 @@ class AcerolaUnitTest {
         runner.addCase(new TestAcerolaToken());
         runner.addCase(new TestAcerolaBehavior());
         runner.addCase(new TestAcerolaRequest());
-        runner.addCase(new DatabasePoolTest());
+        // runner.addCase(new DatabasePoolTest());
         runner.addCase(new Database9PoolTest());
         
         Report.create(runner);

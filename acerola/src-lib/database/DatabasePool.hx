@@ -131,27 +131,34 @@ class DatabasePool {
     }
 
     private function killTicket(ticket:String, destroyConnection:Bool, ?callback:()->Void, ?rollback:Bool):Void {
-        if (this.map.exists(ticket)) {
-            var poolConn:DatabasePoolConnection = this.map.get(ticket);
-            poolConn.timer.stop();
+        if (!this.map.exists(ticket)) {
+            return;
+        }
 
-            if (destroyConnection) {
-                poolConn.conn.destroy();
+        var poolConn:DatabasePoolConnection = this.map.get(ticket);
+        this.map.remove(ticket);
+
+        poolConn.timer.stop();
+
+        if (destroyConnection) {
+            poolConn.conn.destroy();
+            if (callback != null) haxe.Timer.delay(callback, 0);
+        } else {
+            
+            if (!poolConn.autoTransaction) {
+                poolConn.conn.release();
                 if (callback != null) haxe.Timer.delay(callback, 0);
-            } else {
-                if (poolConn.autoTransaction) {
-                    poolConn.conn.queryResult(rollback ? 'ROLLBACK' : 'COMMIT', function(err:MysqlError, result:MysqlResultSet<Dynamic>):Void {
-                        poolConn.conn.release();
-                        if (callback != null) callback();
-                    });
-                } else {
-                    poolConn.conn.release();
-                    if (callback != null) haxe.Timer.delay(callback, 0);
-                }
+                return;
             }
 
-            this.map.remove(ticket);
+            this.runSimpleQuery(poolConn.conn, rollback ? 'ROLLBACK' : 'COMMIT', (err_a:Bool) -> {
+                poolConn.conn.release();
+                if (callback != null) callback();
+            });
         }
+
+        
+    
     }
 
     public function isOpen(ticket:String):Bool return this.map.exists(ticket);
