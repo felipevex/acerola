@@ -58,7 +58,7 @@ class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
 
     override function runBeforeResult(isSuccess:Bool, callback:() -> Void) {
         super.runBeforeResult(isSuccess, () -> {
-            this.behavior.get(AcerolaServiceBehaviorDatabase).closeDatabaseTicket(callback, !isSuccess);
+            this.behavior.get(AcerolaServiceBehaviorDatabase).closeDatabaseTicket(callback, isSuccess);
         });
     }
 
