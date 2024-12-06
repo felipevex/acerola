@@ -132,6 +132,7 @@ class DatabasePool {
 
     private function killTicket(ticket:String, destroyConnection:Bool, ?callback:()->Void, ?rollback:Bool):Void {
         if (!this.map.exists(ticket)) {
+            if (callback != null) haxe.Timer.delay(callback, 0);
             return;
         }
 
@@ -156,9 +157,7 @@ class DatabasePool {
                 if (callback != null) callback();
             });
         }
-
         
-    
     }
 
     public function isOpen(ticket:String):Bool return this.map.exists(ticket);
