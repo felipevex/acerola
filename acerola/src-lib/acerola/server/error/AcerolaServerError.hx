@@ -9,16 +9,20 @@ class AcerolaServerError {
     public var message:String;
     public var internal:String;
 
-    public function new(status:Int, errorSource:String, message:String, internal:String) {
+    public function new(status:Int, errorSource:String, message:String, ?internal:String) {
         this.status = status;
         this.errorSource = errorSource;
         this.message = message;
-        this.internal = internal;
+        this.internal = internal == null ? '' : internal;
     }
     
     public function toString():String {
         if (this.errorSource.length == 0) return this.message;
         else return '${this.errorSource}: ${this.message}';
+    }
+
+    static public function fromData(data:AcerolaServerErrorData):AcerolaServerError {
+        return new AcerolaServerError(data.status, data.error_code, data.message, data.internal);
     }
 
     public function toData():AcerolaServerErrorData {
