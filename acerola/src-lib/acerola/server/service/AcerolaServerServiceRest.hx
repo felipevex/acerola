@@ -1,5 +1,6 @@
 package acerola.server.service;
 
+import helper.kits.StringKit;
 import acerola.server.error.AcerolaServerError;
 import acerola.server.model.AcerolaServerResponseData;
 import acerola.server.model.AcerolaServerRequestData;
@@ -9,6 +10,18 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         super(req, res);
 
+        if (this.req.headers.exists('info') && StringKit.isEmpty(this.req.headers.get('info'))) {
+            this.tryRunSetup();
+            this.runInfo();
+            return;
+        }
+
+        this.tryRunSetup();
+        this.behavior.reset();
+        this.executeBehavior();
+    }
+
+    inline private function tryRunSetup():Void {
         try {
             this.setup();
         } catch (e:AcerolaServerError) {
@@ -18,33 +31,30 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
             this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
             return;
         }
-
-        this.behavior.reset();
-        this.executeBehavior();
     }
 
     private function executeBehavior():Void {
-        if (!this.behavior.hasNext()) {
-            try {
-                this.validate();
-                this.run();
-            } catch (e:AcerolaServerError) {
-                this.resultError(e);
-                return;
-            } catch (e:Dynamic) {
-                this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
-                return;
-            }
-
+        if (this.behavior.hasNext()) {
+            this.behavior.next().start({
+                onSuccess : this.executeBehavior,
+                onError : this.resultError
+            });
+            
             return;
         }
         
-        var b = this.behavior.next();
-        
-        b.start({
-            onSuccess : this.executeBehavior,
-            onError : this.resultError
-        });
+        try {
+            this.validate();
+            this.run();
+        } catch (e:AcerolaServerError) {
+            this.resultError(e);
+            return;
+        } catch (e:Dynamic) {
+            this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
+            return;
+        }
+
+        return;
     }
 
     public function resultHtml(data:String, status:Int = 200):Void this.result(data, status, 'text/html; charset=utf-8');

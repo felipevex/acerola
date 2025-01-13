@@ -2,6 +2,7 @@ package acerola.test.api;
 
 import acerola.test.api.star.AcerolaStarTest;
 import acerola.test.api.get.AcerolaGetTest;
+import acerola.test.api.info.AcerolaGetInfoTest;
 import acerola.test.api.database.AcerolaDatabaseTest;
 import acerola.test.api.timeout.AcerolaTimeoutTest;
 import acerola.test.api.post.PitangaPostTest;
@@ -16,6 +17,8 @@ class AcerolaApiTest {
         new AcerolaTimeoutTest();
         new AcerolaDatabaseTest();
         new AcerolaStarTest();
+
+        new AcerolaGetInfoTest();
     }
 
 }

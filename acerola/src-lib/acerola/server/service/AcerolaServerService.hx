@@ -1,5 +1,6 @@
 package acerola.server.service;
 
+import acerola.server.model.AcerolaServerVerbsType;
 import acerola.server.error.AcerolaServerError;
 import acerola.server.behavior.AcerolaBehaviorManager;
 import anonstruct.AnonStructError;
@@ -54,12 +55,30 @@ class AcerolaServerService {
         throw 'Override run method.';
     }
 
+    public function runInfo():Void {
+        var className:String = Type.getClassName(Type.getClass(this));
+        var verb:AcerolaServerVerbsType = this.req.verb;
+        var params:Dynamic = this.req.params;
+        var body:Dynamic = this.req.body;
+
+        this.result(
+            {
+                className: className,
+                verb: verb,
+                params: params,
+                body: body
+            }, 
+            200, 
+            'application/json'
+        );
+    }
+
     public function runTimeout():Void {
         
     }
     
     private function result(data:Dynamic, status:Int, contentType:String):Void {
-        var isSuccess:Bool = Std.isOfType(data, AcerolaServerError) ? false : true;
+        var isSuccess:Bool = !Std.isOfType(data, AcerolaServerError);
 
         this.runBeforeResult(isSuccess, () -> {
             this.res.headers.set('Content-Type', contentType);
