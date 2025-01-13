@@ -48,7 +48,7 @@ class DatabasePoolTest extends Test {
         var expectedLength:Int = 1;
 
         var assert:()->Void = null;
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<{vint:Int, vfloat:Float, vchar:String, vjson:Dynamic}> = {
             query : '
                 SELECT 
                     1 as vint,
@@ -64,7 +64,7 @@ class DatabasePoolTest extends Test {
             this.pool.query(
                 ticket,
                 query,
-                function(data:DatabaseSuccess<Dynamic>):Void {
+                function(data:DatabaseSuccess<{vint:Int, vfloat:Float, vchar:String, vjson:Dynamic}>):Void {
                     resultDataValue = data.raw.next();
                     resultLength = data.length;
 
@@ -145,7 +145,7 @@ class DatabasePoolTest extends Test {
         var expectedDataValue:Int = 1;
         var expectedLength:Int = 1;
         var assert:()->Void = null;
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<{value:Int}> = {
             query : 'SELECT :value AS `value`',
             data : {
                 value : 1
@@ -183,7 +183,7 @@ class DatabasePoolTest extends Test {
         var expectedErrorCode:String = 'ER_PARSE_ERROR';
         var assert:()->Void = null;
 
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<{value:Int}> = {
             query : 'invalid query'
         }
 
@@ -215,7 +215,7 @@ class DatabasePoolTest extends Test {
         var resultErrorCode:String;
         var expectedErrorCode:String = DatabasePool.ERROR_INVALID_TICKET;
         var assert:()->Void = null;
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<{value:Int}> = {
             query : 'SELECT 1'
         }
 
@@ -248,7 +248,8 @@ class DatabasePoolTest extends Test {
         // ARRANGE
         var resultErrorCode:String;
         var expectedErrorCode:String = 'PROTOCOL_SEQUENCE_TIMEOUT';
-        var query:DatabaseRequest = {
+
+        var query:DatabaseRequest<{value:Int}> = {
             query : 'SELECT benchmark(10000000, md5("when will it end?"));',
             timeout : 1
         }
@@ -331,7 +332,7 @@ class DatabasePoolTest extends Test {
         var ticketTimeOut:Int = 10;
         var resultErrorCode:String;
         var expectedErrorCode:String = 'ER_CRAPP_CONNECTION_TIMEOUT';
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<{value:Int}> = {
             query : 'SELECT benchmark(10000000, md5("when will it end?"));'
         }
         var assert:()->Void = null;
@@ -364,14 +365,15 @@ class DatabasePoolTest extends Test {
         var expectedLength:Int = 0;
         var valueName:String = 'item name';
         var valueUnique:String = StringKit.generateRandomHex(30);
-        var queryInsert:DatabaseRequest = {
+
+        var queryInsert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : valueUnique,
                 name : valueName
             }
         }
-        var querySelect:DatabaseRequest = {
+        var querySelect:DatabaseRequest<Dynamic> = {
             query : 'SELECT * FROM tests.my_table WHERE unq = :unq',
             data : {
                 unq : valueUnique
@@ -409,14 +411,14 @@ class DatabasePoolTest extends Test {
         var expectedLength:Int = 1;
         var valueName:String = 'item name';
         var valueUnique:String = StringKit.generateRandomHex(30);
-        var queryInsert:DatabaseRequest = {
+        var queryInsert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : valueUnique,
                 name : valueName
             }
         }
-        var querySelect:DatabaseRequest = {
+        var querySelect:DatabaseRequest<Dynamic> = {
             query : 'SELECT * FROM tests.my_table WHERE unq = :unq',
             data : {
                 unq : valueUnique
@@ -460,14 +462,14 @@ class DatabasePoolTest extends Test {
         var expectedLength:Int = 0;
         var valueName:String = 'item name';
         var valueUnique:String = StringKit.generateRandomHex(30);
-        var queryInsert:DatabaseRequest = {
+        var queryInsert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : valueUnique,
                 name : valueName
             }
         }
-        var querySelect:DatabaseRequest = {
+        var querySelect:DatabaseRequest<Dynamic> = {
             query : 'SELECT * FROM tests.my_table WHERE unq = :unq',
             data : {
                 unq : valueUnique
@@ -510,7 +512,7 @@ class DatabasePoolTest extends Test {
         var resultErrorCode:String;
         var expectedErrorCode:String = 'PROTOCOL_SEQUENCE_TIMEOUT';
         var ticketTimeOut:Int = 5;
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<Dynamic> = {
             query : "SELECT benchmark(1000000, md5('when will it end?'));",
             cache : true,
             cache_timeout : 50,
@@ -559,14 +561,14 @@ class DatabasePoolTest extends Test {
         var autoTransaction:Bool = false;
         var valueName:String = 'item name';
         var valueUnique:String = StringKit.generateRandomHex(30);
-        var queryInsert:DatabaseRequest = {
+        var queryInsert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : valueUnique,
                 name : valueName
             }
         }
-        var querySelect:DatabaseRequest = {
+        var querySelect:DatabaseRequest<Dynamic> = {
             query : 'SELECT * FROM tests.my_table WHERE unq = :unq',
             data : {
                 unq : valueUnique
@@ -605,7 +607,7 @@ class DatabasePoolTest extends Test {
 
         var assert:()->Void = null;
 
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : StringKit.generateRandomHex(30),
@@ -643,7 +645,7 @@ class DatabasePoolTest extends Test {
 
         var assert:()->Void = null;
 
-        var query_insert:DatabaseRequest = {
+        var query_insert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : StringKit.generateRandomHex(30),
@@ -651,7 +653,7 @@ class DatabasePoolTest extends Test {
             }
         }
 
-        var query_update:DatabaseRequest = {
+        var query_update:DatabaseRequest<Dynamic> = {
             query : 'UPDATE tests.my_table SET name = :name WHERE unq = :unq',
             data : {
                 unq : query_insert.data.unq,
@@ -696,7 +698,7 @@ class DatabasePoolTest extends Test {
 
         var assert:()->Void = null;
 
-        var query_insert:DatabaseRequest = {
+        var query_insert:DatabaseRequest<Dynamic> = {
             query : 'INSERT INTO tests.my_table (unq, name) VALUES (:unq, :name)',
             data : {
                 unq : StringKit.generateRandomHex(30),
@@ -704,7 +706,7 @@ class DatabasePoolTest extends Test {
             }
         }
 
-        var query_update:DatabaseRequest = {
+        var query_update:DatabaseRequest<Dynamic> = {
             query : 'UPDATE tests.my_table SET name = :name WHERE unq = :unq',
             data : {
                 unq : query_insert.data.unq,
@@ -750,7 +752,7 @@ class DatabasePoolTest extends Test {
 
         var assert:()->Void = null;
 
-        var query_update:DatabaseRequest = {
+        var query_update:DatabaseRequest<Dynamic> = {
             query : 'UPDATE tests.my_table SET name = "novo nome" WHERE unq = :unq',
             data : {
                 unq : 'invalid unq',
@@ -790,7 +792,7 @@ class DatabasePoolTest extends Test {
 
         var assert:()->Void = null;
 
-        var query:DatabaseRequest = {
+        var query:DatabaseRequest<Dynamic> = {
             query : 'SELECT * FROM tests.my_table LIMIT 1',
             data : {}
         }

@@ -28,7 +28,7 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
         this.req.pool.closeTicket(this.ticket, callback, !isSuccess);
     }
 
-    public function query<Q>(query:DatabaseRequest, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(error:DatabaseError)->Void):Void {
+    public function query<Q>(query:DatabaseRequest<Q>, onComplete:(success:DatabaseSuccess<Q>)->Void, onError:(error:DatabaseError)->Void):Void {
         this.req.pool.query(
             this.ticket,
             query,
@@ -37,7 +37,7 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
         );
     }
 
-    public function queryRun(query:DatabaseRequest, onComplete:()->Void, onError:(err:AcerolaServerError)->Void):Void {
+    public function queryRun<Q>(query:DatabaseRequest<Q>, onComplete:()->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.query(
             query,
             (success:DatabaseSuccess<Dynamic>) -> onComplete(),
@@ -47,9 +47,9 @@ class AcerolaServiceBehaviorDatabase extends AcerolaBehavior {
         );
     }
 
-    public function querySelectOne<Q>(query:DatabaseRequest, onRead:(data:Q)->Void, onError:(err:AcerolaServerError)->Void):Void this.querySelect(query, true, function(data:Array<Q>):Void onRead(data[0]), onError);
+    public function querySelectOne<Q>(query:DatabaseRequest<Q>, onRead:(data:Q)->Void, onError:(err:AcerolaServerError)->Void):Void this.querySelect(query, true, function(data:Array<Q>):Void onRead(data[0]), onError);
 
-    public function querySelect<Q>(query:DatabaseRequest, protectFrom404:Bool, onRead:(data:Array<Q>)->Void, onError:(err:AcerolaServerError)->Void):Void {
+    public function querySelect<Q>(query:DatabaseRequest<Q>, protectFrom404:Bool, onRead:(data:Array<Q>)->Void, onError:(err:AcerolaServerError)->Void):Void {
         this.query(
             query,
             function(success:DatabaseSuccess<Q>):Void {

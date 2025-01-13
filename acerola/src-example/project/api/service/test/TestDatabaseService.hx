@@ -8,7 +8,7 @@ import acerola.server.service.AcerolaServerDatabaseService;
 class TestDatabaseService extends AcerolaServerDatabaseService<Dynamic> {
     
     override public function run():Void {
-        var query:DatabaseRequest = this.req.body;
+        var query:DatabaseRequest<Dynamic> = this.req.body;
 
         this.query(query, this.onComplete, onError);
     }

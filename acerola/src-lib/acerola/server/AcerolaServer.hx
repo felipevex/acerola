@@ -1,5 +1,6 @@
 package acerola.server;
 
+import js.node.V8;
 import database.DatabasePool;
 import acerola.server.error.AcerolaServerError;
 import database.DatabaseConnection;
@@ -60,6 +61,8 @@ class AcerolaServer {
                 this.serverStarted = true;
 
                 Sys.println('Server running in port ${port}');
+                Sys.println('Memory Available: ' + Math.round(V8.getHeapStatistics().total_available_size / 1024 / 1024) + 'mb');
+                
             }
         );
 

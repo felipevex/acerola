@@ -2,7 +2,7 @@ package database;
 
 import anonstruct.AnonStruct;
 
-typedef DatabaseRequest = {
+typedef DatabaseRequest<RESULT> = {
     var query:String;
 
     @:optional var data:Dynamic;

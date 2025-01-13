@@ -162,7 +162,7 @@ class DatabasePool {
 
     public function isOpen(ticket:String):Bool return this.map.exists(ticket);
 
-    public function query<T>(ticket:String, request:DatabaseRequest, onSuccess:(data:DatabaseSuccess<T>)->Void, ?onError:(err:DatabaseError)->Void):Void {
+    public function query<T>(ticket:String, request:DatabaseRequest<T>, onSuccess:(data:DatabaseSuccess<T>)->Void, ?onError:(err:DatabaseError)->Void):Void {
         if (!this.isOpen(ticket)) {
             haxe.Timer.delay(() -> {
                 if (onError != null) onError(
