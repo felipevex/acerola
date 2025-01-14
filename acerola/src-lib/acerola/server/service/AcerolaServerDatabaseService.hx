@@ -10,12 +10,8 @@ import database.DatabaseRequest;
 
 class AcerolaServerDatabaseService<S> extends AcerolaServerServiceRest<S> {
 
-    public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
-        super(req, res);
-    }
-
-    override function setup() {
-        super.setup();
+    override function setupBehavior() {
+        super.setupBehavior();
         this.behavior.addBehavior(AcerolaServiceBehaviorDatabase);
     }
 

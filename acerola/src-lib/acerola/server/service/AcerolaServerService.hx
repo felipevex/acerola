@@ -23,6 +23,11 @@ class AcerolaServerService {
         this.res = res;
 
         this.behavior = new AcerolaBehaviorManager(this.req, this.res);
+        this.setupBehavior();
+    }
+
+    public function setupBehavior():Void {
+        
     }
 
     public function setup():Void {

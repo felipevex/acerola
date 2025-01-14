@@ -10,20 +10,16 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
     public function new(req:AcerolaServerRequestData, res:AcerolaServerResponseData) {
         super(req, res);
 
-        if (this.req.headers.exists('info') && StringKit.isEmpty(this.req.headers.get('info'))) {
-            this.tryRunSetup();
-            this.runInfo();
-            return;
-        }
-
-        this.tryRunSetup();
-        this.behavior.reset();
-        this.executeBehavior();
-    }
-
-    inline private function tryRunSetup():Void {
         try {
+            if (this.req.headers.exists('info') && StringKit.isEmpty(this.req.headers.get('info'))) {
+                this.setup();
+                this.runInfo();
+                
+                return;
+            }
+
             this.setup();
+
         } catch (e:AcerolaServerError) {
             this.resultError(e);
             return;
@@ -31,6 +27,9 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
             this.resultError(AcerolaServerError.SERVER_ERROR(Std.string(e)));
             return;
         }
+
+        this.behavior.reset();
+        this.executeBehavior();
     }
 
     private function executeBehavior():Void {
@@ -54,7 +53,6 @@ class AcerolaServerServiceRest<S> extends AcerolaServerService {
             return;
         }
 
-        return;
     }
 
     public function resultHtml(data:String, status:Int = 200):Void this.result(data, status, 'text/html; charset=utf-8');
