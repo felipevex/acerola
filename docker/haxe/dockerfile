@@ -44,8 +44,8 @@ RUN yes | haxelib install utest
 RUN yes | haxelib install datetime
 RUN yes | haxelib install haxe-crypto
 RUN yes | haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs.git
-RUN yes | haxelib --skip-dependencies git anonstruct https://github.com/triture/anonstruct.git
 RUN yes | haxelib --skip-dependencies git util-kit https://github.com/triture/util-kit.git
+RUN yes | haxelib --skip-dependencies git anonstruct https://github.com/triture/anonstruct.git
 RUN yes | haxelib --skip-dependencies git apirock https://github.com/triture/apirock.git                            master
 RUN yes | haxelib install hxjava
 

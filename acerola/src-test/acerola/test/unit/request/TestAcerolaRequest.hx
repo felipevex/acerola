@@ -1,7 +1,7 @@
 package acerola.test.unit.request;
 
+import util.kit.nothing.Nothing;
 import acerola.request.AcerolaRequestData;
-import haxe.ds.StringMap;
 import project.api.service.test.requests.ExampleRequests.GetTestGetHeader;
 import project.api.service.test.model.TestGetHeaderServiceData;
 import project.api.service.test.model.TestPostServiceData;
@@ -20,7 +20,7 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetHelloWorldJson = new GetHelloWorldJson();
 
-        var valueRequestData:AcerolaRequestData<Bool, Bool> = new AcerolaRequestData<Bool, Bool>()
+        var valueRequestData:AcerolaRequestData<Nothing, Nothing> = new AcerolaRequestData<Nothing, Nothing>()
             .setUrl('http://127.0.0.1:1000');
 
         var resultResult:{hello:String};
@@ -50,7 +50,7 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetTestGet = new GetTestGet();
 
-        var valueRequestData:AcerolaRequestData<TestGetServiceData, Bool> = new AcerolaRequestData<TestGetServiceData, Bool>()
+        var valueRequestData:AcerolaRequestData<TestGetServiceData, Nothing> = new AcerolaRequestData<TestGetServiceData, Nothing>()
             .setUrl('http://127.0.0.1:1000')
             .setParams({
                 id : 1,
@@ -86,7 +86,7 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:PostTestPost = new PostTestPost();
 
-        var valueRequestData:AcerolaRequestData<Bool, TestPostServiceData> = new AcerolaRequestData<Bool, TestPostServiceData>()
+        var valueRequestData:AcerolaRequestData<Nothing, TestPostServiceData> = new AcerolaRequestData<Nothing, TestPostServiceData>()
             .setUrl('http://127.0.0.1:1000')
             .setBody({
                 id : 1,
@@ -122,7 +122,7 @@ class TestAcerolaRequest extends Test {
         // ARRANGE
         var request:GetTestGetHeader = new GetTestGetHeader();
 
-        var valueRequestData:AcerolaRequestData<Bool, Bool> = new AcerolaRequestData<Bool, Bool>()
+        var valueRequestData:AcerolaRequestData<Nothing, Nothing> = new AcerolaRequestData<Nothing, Nothing>()
             .setUrl('http://127.0.0.1:1000')
             .setHeader("header", "value");
 
