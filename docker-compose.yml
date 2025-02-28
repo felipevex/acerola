@@ -10,6 +10,7 @@ services:
         volumes:
             - ./docker/shared:/docker-shared
             - ./acerola:/acerola
+            - ./docs:/acerola/docs
     
     mysql:
         restart: always

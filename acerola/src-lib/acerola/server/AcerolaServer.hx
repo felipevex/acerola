@@ -10,15 +10,79 @@ import acerola.server.route.AcerolaRoute;
 import node.express.Application;
 import node.express.Express;
 
+/**
+    Classe responsável por criar e gerenciar um servidor web usando Express.js em Haxe.
+    Fornece funcionalidades para inicializar o servidor, configurar rotas e lidar com erros.
+
+    #### Responsabilidades:
+    - **Inicialização de Servidor**: Configura e inicia um servidor Express.js com as configurações necessárias.
+    - **Gerenciamento de Rotas**: Cria e disponibiliza um objeto de roteamento para registrar endpoints da API.
+    - **Tratamento de Erros**: Fornece mecanismos para tratamento de erros HTTP e respostas adequadas.
+    - **Conexão com Banco de Dados**: Gerencia a conexão com o banco de dados quando fornecido.
+
+    ### Exemplo de Uso:
+    ```haxe
+
+    // Configuração da conexão com o banco de dados
+    var connection = new DatabaseConnection({
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'mydatabase'
+    });
+
+    // Criação do servidor Acerola
+    var server = new AcerolaServer(connection);
+
+    // Registro de rotas
+    server.route.register(GetHelloWorldJson, HelloWorldJsonService);
+
+    // Início do servidor na porta 3000
+    server.start(3000);
+
+    // A partir daqui, em outro arquivo, por exemplo, em uma pasta chamada "services":
+
+    // Exemplo de requisição GET
+    class GetHelloWorldJson extends AcerolaRequest<{hello:String}, Dynamic, Dynamic> {
+        public function new() {
+            super(GET, '/hello-world');
+        }
+    }
+
+    // Exemplo de serviço que retorna um JSON simples
+    class HelloWorldJsonService extends AcerolaServerServiceRest<{hello:String}> {
+        override function run() {
+            this.resultSuccess({hello: "world"});
+        }
+    }
+
+    ```
+**/
 class AcerolaServer {
     
     private var express:Application;
 
+    /**
+        Indica se o servidor foi iniciado com sucesso.
+    **/
     public var serverStarted:Bool;
 
+    /**
+        Gerenciador de rotas da aplicação, usado para registrar endpoints da API.
+    **/
     public var route:AcerolaRoute;
+
+    /**
+        Gerenciador de pool de conexões de banco de dados.
+    **/
     public var database:DatabasePool;
 
+    /**
+        Cria uma nova instância do servidor Acerola.
+        Inicializa a aplicação Express e configura o roteamento básico.
+        
+        @param connection Configuração opcional de conexão com o banco de dados
+    **/
     public function new(?connection:DatabaseConnection) {
         this.serverStarted = false;
         this.createApplication();
@@ -50,6 +114,12 @@ class AcerolaServer {
         this.express.use(this.handleError);
     }
 
+    /**
+        Inicia o servidor na porta especificada.
+        Configura as rotas de fallback para 404 e imprime informações de status no console.
+        
+        @param port Porta na qual o servidor será iniciado, o valor padrão é 1000
+    **/
     public function start(port:Int = 1000):Void {
         if (this.serverStarted) return;
 
