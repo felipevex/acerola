@@ -1,5 +1,3 @@
-Coletando informações do workspace# Acerola
-
 # ACEROLA
 
 Acerola é um framework Haxe para desenvolvimento de serviços web RESTful moderno, flexível e de alta performance. Projetado para facilitar a criação de APIs estruturadas com validação robusta, o Acerola permite que você construa serviços web altamente testáveis e escaláveis.
