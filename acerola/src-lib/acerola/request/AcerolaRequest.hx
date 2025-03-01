@@ -59,7 +59,7 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
             result.failed = false;
             result.result = processData(data);
 
-            haxe.Timer.delay(response.bind(result), 0);
+            response(result);
         }
 
         http.onError = function(msg:String) {
@@ -76,7 +76,7 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
                 error_code : 'unknown_error'
             }
 
-            haxe.Timer.delay(response.bind(result), 0);
+            response(result);
         }
 
         http.setHeader('Content-Type', 'application/json');
