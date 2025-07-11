@@ -26,33 +26,33 @@ class AcerolaRoute {
         this.database = database;
     }
 
-    public function register<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>(request:Class<AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>>, service:Class<AcerolaServerServiceRest<RESPONSE_BODY>>):Void {
+    public function register<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>(request:Class<AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY>>, service:Class<AcerolaServerServiceRest<RESPONSE_BODY>>, ?maxTimeout:Int = 5000):Void {
         var requestInstance:AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> = Type.createInstance(request, []);
-        this.registerService(requestInstance.verb, requestInstance.path, cast service);
+        this.registerService(requestInstance.verb, requestInstance.path, cast service, maxTimeout);
     }
 
 
     // TIP : Use /my/route/[id:Int]/[name:String]
-    public function registerService(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>):Void {
+    public function registerService(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, ?maxTimeout:Int = 5000):Void {
         Sys.println('ROUTE - ${verb} ${route} ${Type.getClassName(service)}');
 
         var routeCleaned:String = route.cleanPath;
-        
+
         switch (verb) {
-            case AcerolaServerVerbsType.GET : this.express.get(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
-            case AcerolaServerVerbsType.POST : this.express.post(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _));
+            case AcerolaServerVerbsType.GET : this.express.get(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _, maxTimeout));
+            case AcerolaServerVerbsType.POST : this.express.post(routeCleaned, this.serviceRunner.bind(verb, route, service, _, _, maxTimeout));
         }
 
     }
 
-    private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response):Void {
-        
+    private function serviceRunner(verb:AcerolaServerVerbsType, route:AcerolaPath, service:Class<AcerolaServerService>, xreq:Request, xres:Response, maxTimeout:Int = 5000):Void {
+
         var requestMoment:Date = Date.now();
         var serviceInstance:AcerolaServerService = null;
-        
+
         var requestHeader:StringMap<String> = new StringMap<String>();
         for (key in Reflect.fields(xreq.headers)) requestHeader.set(key, Reflect.field(xreq.headers, key));
-        
+
         var req:AcerolaServerRequestData = {
             verb: verb,
             route: route,
@@ -63,7 +63,7 @@ class AcerolaRoute {
             headers : requestHeader,
             moment : requestMoment,
             hostname: (
-                xreq.hostname == null 
+                xreq.hostname == null
                 ? 'NO_HOSTNAME'
                 : xreq.hostname
             ),
@@ -90,12 +90,12 @@ class AcerolaRoute {
             res.isDone = true;
 
             this.printExecution(verb, route, res.status, Math.floor(Date.now().getTime() - requestMoment.getTime()));
-            
+
             if (res.timeout != null) {
                 res.timeout.stop();
                 res.timeout = null;
             }
-            
+
             for (key in res.headers.keys()) xres.set(key, res.headers.get(key));
             xres.status(res.status).send(res.data);
 
@@ -103,12 +103,12 @@ class AcerolaRoute {
                 Sys.println('ERROR - Response already sent (${route})');
             };
         }
-        
+
 
         res.timeout = haxe.Timer.delay(() -> {
             Sys.println('ERROR - Timeout reached (${route})');
             serviceInstance.runTimeout();
-        }, 5000);
+        }, maxTimeout);
 
         serviceInstance = Type.createInstance(service, [req, res]);
     }
@@ -119,7 +119,7 @@ class AcerolaRoute {
     }
 
     inline private function pad(value:String, len:Int):String return StringTools.lpad(value, ' ', len);
-    
+
     // public function registerProxy(verb:CrappRouteVerb, route:String, proxyURL:String):Void {
     //     Crapp.S.controller.print(1, 'PROXY - ${verb} ${route} ${proxyURL}');
 
