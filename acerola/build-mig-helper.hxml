@@ -1,0 +1,10 @@
+
+-lib util-kit
+-lib anonstruct
+-lib datetime
+
+-cp src-mig
+
+-main acerola.mig.MigHelper
+
+-neko ./build/mig-helper/run.n

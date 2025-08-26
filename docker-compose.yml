@@ -5,13 +5,14 @@ services:
         build:
             context: ./docker/haxe/
             dockerfile: dockerfile
-        environment: 
+        environment:
             KEEP_CONTAINER_ALIVE: "yes"
         volumes:
+            - ./:/repo
             - ./docker/shared:/docker-shared
             - ./acerola:/acerola
             - ./docs:/acerola/docs
-    
+
     mysql:
         restart: always
         build:

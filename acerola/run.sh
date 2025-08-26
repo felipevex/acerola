@@ -1,3 +1,6 @@
+
+bash run-mig.sh                     && \
+
 haxe example.hxml                   && \
 haxe test-unit-js.hxml              && \
 haxe test-unit-acerola.hxml         && \

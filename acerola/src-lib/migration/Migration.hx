@@ -7,14 +7,14 @@ import database.DatabaseConnection;
 class Migration {
 
     private var mysql:MysqlConnection;
-    
-    public function new(connection:DatabaseConnection) {
-        this.connectDatabase(connection, ()-> {});
+
+    public function new(connection:DatabaseConnection = null) {
+        if (connection != null) this.connectDatabase(connection, ()-> {});
     }
 
     inline private function print(message:String):Void Terminal.print('MIGRATION', message);
 
-    private function connectDatabase(connection:DatabaseConnection, onConnect:()->Void):Void {
+    public function connectDatabase(connection:DatabaseConnection, onConnect:()->Void):Void {
         if (this.mysql == null) this.mysql = Mysql.createConnection({
             host : connection.host,
             user : connection.user,
