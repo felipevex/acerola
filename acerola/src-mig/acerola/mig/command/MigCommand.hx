@@ -1,5 +1,7 @@
 package acerola.mig.command;
 
+import util.kit.uuid.UUID;
+import haxe.crypto.Sha1;
 import acerola.mig.data.MigStepData;
 import acerola.mig.data.MigData;
 import haxe.Json;
@@ -8,7 +10,7 @@ import haxe.io.Path;
 import sys.FileSystem;
 import helper.kits.StringKit;
 
-using acerola.terminal.Terminal;
+using terminal.Terminal;
 
 class MigCommand {
 
@@ -109,16 +111,13 @@ class MigCommand {
         return content;
     }
 
-
-    private function getMigData():MigData {
-        this.printStep('Loading migration file');
-
+    private function loadMigData():MigData {
         var path:String = this.getFullPath();
         var migFile:String = 'migration.json';
         var migFilePath:String = Path.join([path, migFile]);
 
         if (!FileSystem.exists(migFilePath) || FileSystem.isDirectory(migFilePath)) {
-            this.checkHasError('Migration file ${migFile} does not exist');
+            throw 'Migration file ${migFile} does not exist';
         }
 
         var data:MigData = null;
@@ -130,11 +129,46 @@ class MigCommand {
             var validator:MigDataValidator = new MigDataValidator();
             validator.validate(data);
         } catch (e:Dynamic) {
-            this.checkHasError('Migration file ${migFile} is not valid: ${Std.string(e)}');
+            throw  'Migration file ${migFile} is not valid: ${Std.string(e)}';
         }
-
-        this.checkSuccess();
 
         return data;
     }
+
+    private function getMigData():MigData {
+        this.printStep('Loading migration file');
+
+        try {
+            var data:MigData = this.loadMigData();
+            this.checkSuccess();
+            return data;
+        } catch (e) {
+            this.checkHasError(Std.string(e));
+            return null;
+        }
+    }
+
+    private function healthCheck():Void {
+        var data:MigData = this.loadMigData();
+
+        var lastHash:String = '';
+        var lastFileContent:String = '';
+
+        for (step in data.migrations) {
+            var expectedHash:String = this.generateHash(data.uuid, lastHash, lastFileContent);
+
+            if (step.hash != expectedHash) {
+                throw 'Migration file ${step.file} has invalid hash. The migration files may have been altered.';
+            }
+
+            lastHash = step.hash;
+            lastFileContent = this.loadStepData(step);
+        }
+    }
+
+    private function generateHash(uuid:UUID, lastHash:String, fileContent:String):String {
+        var hash:String = Sha1.encode(uuid.toString() + lastHash + fileContent);
+        return hash;
+    }
+
 }

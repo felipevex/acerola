@@ -3328,6 +3328,113 @@ haxe_ValueException.prototype = $extend(haxe_Exception.prototype,{
 	}
 	,__class__: haxe_ValueException
 });
+var haxe_crypto_Sha1 = function() {
+};
+haxe_crypto_Sha1.__name__ = true;
+haxe_crypto_Sha1.encode = function(s) {
+	var sh = new haxe_crypto_Sha1();
+	var h = sh.doEncode(haxe_crypto_Sha1.str2blks(s));
+	return sh.hex(h);
+};
+haxe_crypto_Sha1.str2blks = function(s) {
+	var s1 = haxe_io_Bytes.ofString(s);
+	var nblk = (s1.length + 8 >> 6) + 1;
+	var blks = [];
+	var _g = 0;
+	var _g1 = nblk * 16;
+	while(_g < _g1) {
+		var i = _g++;
+		blks[i] = 0;
+	}
+	var _g = 0;
+	var _g1 = s1.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var p = i >> 2;
+		blks[p] |= s1.b[i] << 24 - ((i & 3) << 3);
+	}
+	var i = s1.length;
+	var p = i >> 2;
+	blks[p] |= 128 << 24 - ((i & 3) << 3);
+	blks[nblk * 16 - 1] = s1.length * 8;
+	return blks;
+};
+haxe_crypto_Sha1.prototype = {
+	doEncode: function(x) {
+		var w = [];
+		var a = 1732584193;
+		var b = -271733879;
+		var c = -1732584194;
+		var d = 271733878;
+		var e = -1009589776;
+		var i = 0;
+		while(i < x.length) {
+			var olda = a;
+			var oldb = b;
+			var oldc = c;
+			var oldd = d;
+			var olde = e;
+			var j = 0;
+			while(j < 80) {
+				if(j < 16) {
+					w[j] = x[i + j];
+				} else {
+					var num = w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16];
+					w[j] = num << 1 | num >>> 31;
+				}
+				var t = (a << 5 | a >>> 27) + this.ft(j,b,c,d) + e + w[j] + this.kt(j);
+				e = d;
+				d = c;
+				c = b << 30 | b >>> 2;
+				b = a;
+				a = t;
+				++j;
+			}
+			a += olda;
+			b += oldb;
+			c += oldc;
+			d += oldd;
+			e += olde;
+			i += 16;
+		}
+		return [a,b,c,d,e];
+	}
+	,ft: function(t,b,c,d) {
+		if(t < 20) {
+			return b & c | ~b & d;
+		}
+		if(t < 40) {
+			return b ^ c ^ d;
+		}
+		if(t < 60) {
+			return b & c | b & d | c & d;
+		}
+		return b ^ c ^ d;
+	}
+	,kt: function(t) {
+		if(t < 20) {
+			return 1518500249;
+		}
+		if(t < 40) {
+			return 1859775393;
+		}
+		if(t < 60) {
+			return -1894007588;
+		}
+		return -899497514;
+	}
+	,hex: function(a) {
+		var str = "";
+		var _g = 0;
+		while(_g < a.length) {
+			var num = a[_g];
+			++_g;
+			str += StringTools.hex(num,8);
+		}
+		return str.toLowerCase();
+	}
+	,__class__: haxe_crypto_Sha1
+};
 var haxe_ds_List = function() {
 	this.length = 0;
 };
@@ -4811,8 +4918,9 @@ migration_Migration.prototype = {
 	}
 	,runGetState: function(onSuccess,onError) {
 		var _gthis = this;
-		this.support.readCurrentState(this.migrationUUID,function(state) {
-			_gthis.migrationState = state;
+		this.support.readCurrentState(this.migrationUUID,function(currentState,futureState) {
+			_gthis.migrationCurrentState = currentState;
+			_gthis.migrationFutureState = futureState;
 			onSuccess();
 		},onError);
 	}
@@ -4852,27 +4960,36 @@ migration_Migration.prototype = {
 		this.support.applyMigration(this.migrationUUID,step.hash,step.sql,tmp,onError);
 	}
 	,filterStates: function() {
-		if(this.migrationState == null) {
+		if(this.migrationCurrentState == null) {
 			migration_Migration.print("First migration detected. Keeping all migration steps.","\x1B[0;33m");
 			return;
 		}
 		var stateFound = false;
 		while(!stateFound && this.data.length > 0) {
-			if(this.migrationState != this.data[0].hash) {
+			if(this.migrationCurrentState != this.data[0].hash) {
 				this.data.shift();
 				continue;
 			}
-			if(this.migrationState == this.data[0].hash) {
+			if(this.migrationCurrentState == this.data[0].hash) {
 				stateFound = true;
 				this.data.shift();
 				break;
 			}
 		}
 		if(!stateFound) {
-			migration_Migration.print("There is no migration step with hash " + this.migrationState + ".","\x1B[0;31m");
+			migration_Migration.print("There is no migration step with hash " + this.migrationCurrentState + ".","\x1B[0;31m");
 			throw haxe_Exception.thrown("Current migration step not found.");
-		} else if(this.data.length == 0) {
+		}
+		if(this.data.length == 0) {
 			migration_Migration.print("All migrations are already applied.","\x1B[0;32m");
+			return;
+		}
+		var nextHash = this.data[0].hash;
+		if(nextHash != this.migrationFutureState) {
+			migration_Migration.print("Expected next hash is " + this.migrationFutureState + ",","\x1B[0;31m");
+			migration_Migration.print("but next migration step is " + nextHash + ".","\x1B[0;31m");
+			migration_Migration.print("Your last migration file may have been altered after being applied.","\x1B[0;31m");
+			throw haxe_Exception.thrown("Wrong migration hash.");
 		}
 	}
 	,__class__: migration_Migration
@@ -4884,7 +5001,7 @@ migration_MigrationSupport.__name__ = true;
 migration_MigrationSupport.prototype = {
 	runSetup: function(onSuccess,onError) {
 		migration_Migration.print("Running migration setup...","\x1B[0;32m");
-		var query = "\n            CREATE DATABASE IF NOT EXISTS `acerola_mig` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;\n            CREATE TABLE IF NOT EXISTS `acerola_mig`.`mig` (\n                `uuid` CHAR(36) NOT NULL,\n                `value` VARCHAR(1024) NOT NULL,\n                PRIMARY KEY (`uuid`)\n            )\n            ENGINE=InnoDB;\n        ";
+		var query = "\n            CREATE DATABASE IF NOT EXISTS `acerola_mig` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;\n            CREATE TABLE IF NOT EXISTS `acerola_mig`.`mig` (\n                `uuid` CHAR(36) NOT NULL,\n                `current` VARCHAR(1024) NOT NULL,\n                `future` VARCHAR(1024) NOT NULL,\n                PRIMARY KEY (`uuid`)\n            )\n            ENGINE=InnoDB;\n        ";
 		var callback = function(error,result) {
 			if(error == null) {
 				migration_Migration.print("Migration setup completed successfully.","\x1B[0;33m");
@@ -4906,17 +5023,19 @@ migration_MigrationSupport.prototype = {
 	}
 	,readCurrentState: function(uuid,onSuccess,onError) {
 		migration_Migration.print("Reading current migration state for " + (uuid == null ? "null" : util_kit_uuid_UUID.toString(uuid)),"\x1B[0;32m");
-		var query = helper_maker_QueryMaker.make("\n                SELECT\n                    m.value\n                FROM acerola_mig.mig m\n                WHERE m.uuid = :uuid\n                ;\n            ",{ uuid : util_kit_uuid_UUID.toString(uuid)},($_=this.connection,$bind($_,$_.escape)));
+		var query = helper_maker_QueryMaker.make("\n                SELECT\n                    m.current,\n                    m.future\n                FROM acerola_mig.mig m\n                WHERE m.uuid = :uuid\n                ;\n            ",{ uuid : util_kit_uuid_UUID.toString(uuid)},($_=this.connection,$bind($_,$_.escape)));
 		var callback = function(error,result) {
 			if(error == null) {
 				if(!result.hasNext()) {
 					migration_Migration.print("Current Migration State: NONE","\x1B[0;33m");
-					onSuccess(null);
+					onSuccess(null,null);
 					return;
 				}
-				var state = result.next().value;
-				migration_Migration.print("Current Migration State: " + state,"\x1B[0;33m");
-				onSuccess(state);
+				var result1 = result.next();
+				var currentState = result1.current;
+				var futureState = result1.future;
+				migration_Migration.print("Current Migration State: " + currentState,"\x1B[0;33m");
+				onSuccess(currentState,futureState);
 				return;
 			}
 			migration_Migration.print("Read current state failed: " + error.message,"\x1B[0;31m");
@@ -4932,9 +5051,9 @@ migration_MigrationSupport.prototype = {
 			}
 		});
 	}
-	,updateCurrentState: function(uuid,hash,onSuccess,onError) {
+	,updateCurrentState: function(uuid,hash,futureHash,onSuccess,onError) {
 		migration_Migration.print("" + hash + " -> Updating migration state","\x1B[0;35m");
-		var query = helper_maker_QueryMaker.make("\n                INSERT INTO acerola_mig.mig (uuid, value)\n                VALUES (:uuid, :value)\n                ON DUPLICATE KEY UPDATE value = :value\n                ;\n            ",{ uuid : util_kit_uuid_UUID.toString(uuid), value : hash},($_=this.connection,$bind($_,$_.escape)));
+		var query = helper_maker_QueryMaker.make("\n                INSERT INTO acerola_mig.mig (`uuid`, `current`, `future`)\n                VALUES (\n                    :uuid,\n                    :current,\n                    :future\n                )\n\n                ON DUPLICATE KEY UPDATE\n                    `current` = :current,\n                    `future` = :future\n                ;\n            ",{ uuid : util_kit_uuid_UUID.toString(uuid), current : hash, future : futureHash},($_=this.connection,$bind($_,$_.escape)));
 		var callback = function(error,result) {
 			if(error == null) {
 				migration_Migration.print("" + hash + " -> Migration state updated","\x1B[0;35m");
@@ -4960,7 +5079,7 @@ migration_MigrationSupport.prototype = {
 		var callback = function(error,result) {
 			if(error == null) {
 				migration_Migration.print("" + hash + " -> Applied successfully","\x1B[0;35m");
-				_gthis.updateCurrentState(uuid,hash,onSuccess,onError);
+				_gthis.updateCurrentState(uuid,hash,_gthis.generateHash(uuid,hash,sql),onSuccess,onError);
 				return;
 			}
 			migration_Migration.print("" + hash + " -> Migration failed: " + error.message,"\x1B[0;31m");
@@ -4975,6 +5094,10 @@ migration_MigrationSupport.prototype = {
 				callback(err,[]);
 			}
 		});
+	}
+	,generateHash: function(uuid,lastHash,fileContent) {
+		var hash = haxe_crypto_Sha1.encode(util_kit_uuid_UUID.toString(uuid) + lastHash + fileContent);
+		return hash;
 	}
 	,__class__: migration_MigrationSupport
 };

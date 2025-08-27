@@ -9,7 +9,8 @@ import database.DatabaseConnection;
 class Migration {
 
     private var migrationUUID:UUID;
-    private var migrationState:Null<String>;
+    private var migrationCurrentState:Null<String>;
+    private var migrationFutureState:Null<String>;
 
     private var mysql:MysqlConnection;
     private var support:MigrationSupport;
@@ -66,8 +67,10 @@ class Migration {
     private function runGetState(onSuccess:()->Void, onError:(error:String)->Void):Void {
         this.support.readCurrentState(
             this.migrationUUID,
-            (state:Null<String>) -> {
-                this.migrationState = state;
+            (currentState:Null<String>, futureState:Null<String>) -> {
+                this.migrationCurrentState = currentState;
+                this.migrationFutureState = futureState;
+
                 onSuccess();
         }, onError);
     }
@@ -93,7 +96,6 @@ class Migration {
         this.runUp(onSuccess, onFail);
     }
 
-
     private function runUp(onSuccess:()->Void, onFail:(error:String)->Void):Void {
         if (this.data.length == 0) {
             Migration.print('Migration Done', BLUE);
@@ -115,7 +117,7 @@ class Migration {
     }
 
     private function filterStates():Void {
-        if (this.migrationState == null) {
+        if (this.migrationCurrentState == null) {
             Migration.print('First migration detected. Keeping all migration steps.', YELLOW);
             return;
         }
@@ -123,12 +125,12 @@ class Migration {
         var stateFound:Bool = false;
 
         while (!stateFound && this.data.length > 0) {
-            if (this.migrationState != this.data[0].hash) {
+            if (this.migrationCurrentState != this.data[0].hash) {
                 this.data.shift();
                 continue;
             }
 
-            if (this.migrationState == this.data[0].hash) {
+            if (this.migrationCurrentState == this.data[0].hash) {
                 stateFound = true;
                 this.data.shift();
                 break;
@@ -136,10 +138,23 @@ class Migration {
         }
 
         if (!stateFound) {
-            Migration.print('There is no migration step with hash ${this.migrationState}.', RED);
+            Migration.print('There is no migration step with hash ${this.migrationCurrentState}.', RED);
             throw "Current migration step not found.";
-        } else {
-            if (this.data.length == 0) Migration.print('All migrations are already applied.', GREEN);
+        }
+
+        if (this.data.length == 0) {
+            Migration.print('All migrations are already applied.', GREEN);
+            return;
+        }
+
+        var nextHash:String = this.data[0].hash;
+
+        if (nextHash != this.migrationFutureState) {
+            Migration.print('Expected next hash is ${this.migrationFutureState},', RED);
+            Migration.print('but next migration step is ${nextHash}.', RED);
+            Migration.print('Your last migration file may have been altered after being applied.', RED);
+
+            throw 'Wrong migration hash.';
         }
     }
 

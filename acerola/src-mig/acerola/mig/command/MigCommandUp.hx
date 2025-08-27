@@ -14,6 +14,7 @@ class MigCommandUp extends MigCommand {
 
     override function run() {
         this.validatePath();
+        this.healthCheck();
         // this.validateData();
 
         var data:MigRunnerData = this.createMigrationRunnerData();
@@ -32,7 +33,6 @@ class MigCommandUp extends MigCommand {
             if (out.code == 0) out.output.print();
             else {
                 Sys.print(out.output);
-                trace('Error: ${out.out_err}');
             }
         } catch (e) {
             trace(e);

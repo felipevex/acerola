@@ -1,5 +1,6 @@
 package migration;
 
+import haxe.crypto.Sha1;
 import helper.maker.QueryMaker;
 import util.kit.uuid.UUID;
 using terminal.Terminal;
@@ -20,7 +21,8 @@ class MigrationSupport {
             CREATE DATABASE IF NOT EXISTS `acerola_mig` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
             CREATE TABLE IF NOT EXISTS `acerola_mig`.`mig` (
                 `uuid` CHAR(36) NOT NULL,
-                `value` VARCHAR(1024) NOT NULL,
+                `current` VARCHAR(1024) NOT NULL,
+                `future` VARCHAR(1024) NOT NULL,
                 PRIMARY KEY (`uuid`)
             )
             ENGINE=InnoDB;
@@ -35,7 +37,6 @@ class MigrationSupport {
                     return;
                 }
 
-
                 Migration.print('Migration setup failed: ${error.message}', RED);
                 onError(error.message);
 
@@ -43,13 +44,14 @@ class MigrationSupport {
         );
     }
 
-    public function readCurrentState(uuid:UUID, onSuccess:(state:Null<String>)->Void, onError:(error:String)->Void):Void {
+    public function readCurrentState(uuid:UUID, onSuccess:(currentState:Null<String>, futureState:Null<String>)->Void, onError:(error:String)->Void):Void {
         Migration.print('Reading current migration state for ${uuid}', GREEN);
 
         var query:String = QueryMaker.make(
             '
                 SELECT
-                    m.value
+                    m.current,
+                    m.future
                 FROM acerola_mig.mig m
                 WHERE m.uuid = :uuid
                 ;
@@ -62,17 +64,20 @@ class MigrationSupport {
 
         this.connection.queryResult(
             query,
-            (error:MysqlError, result:MysqlResultSet<{value:String}>) -> {
+            (error:MysqlError, result:MysqlResultSet<{current:String, future:String}>) -> {
                 if (error == null) {
                     if (!result.hasNext()) {
                         Migration.print('Current Migration State: NONE', YELLOW);
-                        onSuccess(null);
+                        onSuccess(null, null);
                         return;
                     }
 
-                    var state:String = result.next().value;
-                    Migration.print('Current Migration State: ${state}', YELLOW);
-                    onSuccess(state);
+                    var result = result.next();
+                    var currentState:String = result.current;
+                    var futureState:String = result.future;
+
+                    Migration.print('Current Migration State: ${currentState}', YELLOW);
+                    onSuccess(currentState, futureState);
 
                     return;
                 }
@@ -85,19 +90,27 @@ class MigrationSupport {
 
     }
 
-    public function updateCurrentState(uuid:UUID, hash:String, onSuccess:()->Void, onError:(error:String)->Void):Void {
+    public function updateCurrentState(uuid:UUID, hash:String, futureHash:String, onSuccess:()->Void, onError:(error:String)->Void):Void {
         Migration.print('${hash} -> Updating migration state', MAGENTA);
 
         var query:String = QueryMaker.make(
             '
-                INSERT INTO acerola_mig.mig (uuid, value)
-                VALUES (:uuid, :value)
-                ON DUPLICATE KEY UPDATE value = :value
+                INSERT INTO acerola_mig.mig (`uuid`, `current`, `future`)
+                VALUES (
+                    :uuid,
+                    :current,
+                    :future
+                )
+
+                ON DUPLICATE KEY UPDATE
+                    `current` = :current,
+                    `future` = :future
                 ;
             ',
             {
                 uuid : uuid.toString(),
-                value : hash
+                current : hash,
+                future : futureHash
             },
             this.connection.escape
         );
@@ -129,6 +142,11 @@ class MigrationSupport {
                     this.updateCurrentState(
                         uuid,
                         hash,
+                        this.generateHash(
+                            uuid,
+                            hash,
+                            sql
+                        ),
                         onSuccess,
                         onError
                     );
@@ -139,5 +157,10 @@ class MigrationSupport {
                 onError(error.message);
             }
         );
+    }
+
+    private function generateHash(uuid:UUID, lastHash:String, fileContent:String):String {
+        var hash:String = Sha1.encode(uuid.toString() + lastHash + fileContent);
+        return hash;
     }
 }

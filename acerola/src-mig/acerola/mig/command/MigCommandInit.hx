@@ -7,7 +7,7 @@ import haxe.Json;
 import sys.io.File;
 import haxe.crypto.Sha1;
 import sys.FileSystem;
-using acerola.terminal.Terminal;
+using terminal.Terminal;
 
 class MigCommandInit extends MigCommand {
 
@@ -28,12 +28,13 @@ class MigCommandInit extends MigCommand {
         this.printStep('Starting migration files');
 
         var migStepFile:String = this.createNewMigStepKey();
+        var uuid:UUID = UUID.createRandom();
 
         var migData:MigData = {
-            uuid : UUID.createRandom(),
+            uuid : uuid,
             migrations : [
                 {
-                    hash : Sha1.encode(''),
+                    hash : this.generateHash(uuid, '', ''),
                     file : migStepFile
                 }
             ]

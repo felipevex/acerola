@@ -54,6 +54,7 @@ class MigRunner {
     }
 
     private function onError(error:String) {
+
         Sys.stderr().writeString(error);
         Sys.exit(1);
     }

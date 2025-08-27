@@ -1,13 +1,13 @@
 package acerola.mig.command;
 
 import acerola.mig.data.MigData;
-import haxe.crypto.Sha1;
-using acerola.terminal.Terminal;
+using terminal.Terminal;
 
 class MigCommandCreate extends MigCommand {
 
     override function run() {
         this.validatePath();
+        this.healthCheck();
 
         var path:String = this.getFullPath();
         var local:String = this.getLocalPath();
@@ -23,7 +23,7 @@ class MigCommandCreate extends MigCommand {
         try {
             var lastStep = data.migrations[data.migrations.length - 1];
             var lastStepContent = this.loadStepData(lastStep);
-            var hash:String = Sha1.encode(lastStep.hash + lastStepContent);
+            var hash:String = this.generateHash(data.uuid, lastStep.hash, lastStepContent);
             var newStepFile:String = this.createNewMigStepKey();
 
             data.migrations.push({
