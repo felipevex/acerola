@@ -14,7 +14,7 @@ class MigCommandUp extends MigCommand {
 
     override function run() {
         this.validatePath();
-        this.validateData();
+        // this.validateData();
 
         var data:MigRunnerData = this.createMigrationRunnerData();
 
