@@ -1,7 +1,6 @@
 package acerola.mig.command;
 
 import acerola.mig.data.MigData;
-import acerola.mig.data.MigData.MigStepData;
 import haxe.crypto.Sha1;
 using acerola.terminal.Terminal;
 
@@ -16,7 +15,7 @@ class MigCommandCreate extends MigCommand {
         'MIGRATION CREATE'.print(YELLOW);
 
         // 1. Carregar e validar migration.json (MigRunnerData)
-        var data:MigData = this.stepValidationMigrationFile();
+        var data:MigData = this.getMigData();
 
         // 2. Criar os arquivos de migração
         this.printStep('Creating migration files');

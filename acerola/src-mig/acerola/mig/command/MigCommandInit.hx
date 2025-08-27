@@ -1,5 +1,6 @@
 package acerola.mig.command;
 
+import util.kit.uuid.UUID;
 import acerola.mig.data.MigData;
 import haxe.io.Path;
 import haxe.Json;
@@ -29,6 +30,7 @@ class MigCommandInit extends MigCommand {
         var migStepFile:String = this.createNewMigStepKey();
 
         var migData:MigData = {
+            uuid : UUID.createRandom(),
             migrations : [
                 {
                     hash : Sha1.encode(''),

@@ -1,5 +1,6 @@
 package acerola.mig.command;
 
+import acerola.mig.data.MigStepData;
 import acerola.mig.data.MigData;
 import haxe.Json;
 import sys.io.File;
@@ -92,7 +93,6 @@ class MigCommand {
 
         var migFileData:String = haxe.Json.stringify(data, '    ');
         File.saveContent(Path.join([fullPath, migFile]), migFileData);
-
     }
 
     private function loadStepData(step:MigStepData):String {
@@ -110,7 +110,7 @@ class MigCommand {
     }
 
 
-    private function stepValidationMigrationFile():MigData {
+    private function getMigData():MigData {
         this.printStep('Loading migration file');
 
         var path:String = this.getFullPath();

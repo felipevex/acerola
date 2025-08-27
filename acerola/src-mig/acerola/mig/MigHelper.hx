@@ -1,5 +1,6 @@
 package acerola.mig;
 
+import acerola.mig.command.MigCommandUp;
 import acerola.mig.command.MigCommandCreate;
 import acerola.mig.command.MigCommandInit;
 import acerola.mig.command.MigCommandHelp;
@@ -42,9 +43,9 @@ class MigHelper {
             case HELP : return this.executeHelp(data);
             case INIT : return this.executeInit(data);
             case CREATE : return this.executeCreate(data);
+            case UP : return this.executeUp(data);
+            case _ : throw 'Invalid command ${data.command}';
         }
-
-        throw 'Invalid command ${data.command}';
     }
 
     private function executeHelp(data:MigCommandData):Void {
@@ -59,6 +60,11 @@ class MigHelper {
 
     private function executeCreate(data:MigCommandData):Void {
         var command:MigCommandCreate = new MigCommandCreate(data.cur_path, data.params);
+        command.run();
+    }
+
+    private function executeUp(data:MigCommandData):Void {
+        var command:MigCommandUp = new MigCommandUp(data.cur_path, data.params);
         command.run();
     }
 

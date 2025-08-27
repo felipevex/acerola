@@ -9,6 +9,10 @@ class Terminal {
     public static function colorizeMagenta(s:String):String return '${TerminalColor.MAGENTA}${s}${NC}';
     public static function colorizeCyan(s:String):String return '${TerminalColor.CYAN}${s}${NC}';
 
+    public static function printContext(context:String, message:String):Void {
+        Sys.println('   ${context.toUpperCase()} : ${message}');
+    }
+
     static public function print(s:String, ?color:TerminalColor, ?breakLine:Bool = true):Void {
         if (color == null) Sys.print(s);
         else Sys.print('${color}${s}${NC}');

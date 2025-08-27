@@ -3,6 +3,7 @@
 -lib anonstruct
 -lib datetime
 
+-cp src-lib
 -cp src-mig
 
 -main acerola.mig.MigHelper

@@ -1,20 +1,32 @@
 package migration;
 
-import terminal.Terminal;
+import util.kit.uuid.UUID;
+using terminal.Terminal;
 import node.mysql.Mysql;
 import database.DatabaseConnection;
 
+
 class Migration {
 
-    private var mysql:MysqlConnection;
+    private var migrationUUID:UUID;
+    private var migrationState:Null<String>;
 
-    public function new(connection:DatabaseConnection = null) {
-        if (connection != null) this.connectDatabase(connection, ()-> {});
+    private var mysql:MysqlConnection;
+    private var support:MigrationSupport;
+
+    private var data:Array<{hash:String, sql:String}>;
+
+    public function new(uuid:UUID) {
+        this.data = [];
+        this.migrationUUID = uuid;
     }
 
-    inline private function print(message:String):Void Terminal.print('MIGRATION', message);
+    static public function print(message:String, color):Void {
+        'ACEROLA MIGRATION >> '.print(false);
+        message.print(color);
+    }
 
-    public function connectDatabase(connection:DatabaseConnection, onConnect:()->Void):Void {
+    public function connectDatabase(connection:DatabaseConnection, onSuccess:()->Void, onError:(error:String)->Void, ?maxRetry:Int = 5):Void {
         if (this.mysql == null) this.mysql = Mysql.createConnection({
             host : connection.host,
             user : connection.user,
@@ -26,14 +38,38 @@ class Migration {
 
         this.mysql.connect((err:MysqlError) -> {
             if (err != null) {
-                this.print('Database Connection Error: ' + err.toString());
-                haxe.Timer.delay(this.connectDatabase.bind(connection, onConnect), 2000);
+                Migration.print('Database Connection Error: ${err.toString()}', RED);
+
+                if (maxRetry < 1) {
+                    Migration.print('Database Connection Error: Max retries reached.', RED);
+                    onError("Max connection retries reached");
+                }
+
+                haxe.Timer.delay(this.connectDatabase.bind(connection, onSuccess, onError, maxRetry - 1), 2000);
                 return;
             }
 
-            this.print('Database connected!');
-            onConnect();
+            Migration.print('Database connected!', GREEN);
+
+            this.support = new MigrationSupport(this.mysql);
+            this.runSupport(onSuccess, onError);
         });
+    }
+
+    private function runSupport(onSuccess:()->Void, onError:(error:String)->Void):Void {
+        this.support.runSetup(
+            this.runGetState.bind(onSuccess, onError),
+            onError
+        );
+    }
+
+    private function runGetState(onSuccess:()->Void, onError:(error:String)->Void):Void {
+        this.support.readCurrentState(
+            this.migrationUUID,
+            (state:Null<String>) -> {
+                this.migrationState = state;
+                onSuccess();
+        }, onError);
     }
 
     private function exit():Void {
@@ -41,15 +77,70 @@ class Migration {
         this.mysql = null;
     }
 
-    private function query(sql:String, onResult:()->Void, onError:(message:String)->Void):Void {
-        this.mysql.query(
-            sql,
-            (err:MysqlError, r:Dynamic, f:Array<MysqlFieldPacket>) -> {
-                if (err == null) onResult();
-                else onError(err.message);
-            }
+    public function add(hash:String, sql:String):Void {
+        this.data.push({hash : hash, sql : sql});
+    }
+
+    public function up(onSuccess:()->Void, onFail:(error:String)->Void):Void {
+        try {
+            this.filterStates();
+        } catch (e) {
+            onFail(Std.string(e));
+            return;
+        }
+
+        Migration.print('Starting Migration...', GREEN);
+        this.runUp(onSuccess, onFail);
+    }
+
+
+    private function runUp(onSuccess:()->Void, onFail:(error:String)->Void):Void {
+        if (this.data.length == 0) {
+            Migration.print('Migration Done', BLUE);
+            onSuccess();
+            return;
+        }
+
+        this.executeMigration(this.data.shift(), onSuccess, onFail);
+    }
+
+    private function executeMigration(step:{hash:String, sql:String}, onSuccess:()->Void, onError:(error:String)->Void):Void {
+        this.support.applyMigration(
+            this.migrationUUID,
+            step.hash,
+            step.sql,
+            this.runUp.bind(onSuccess, onError),
+            onError
         );
     }
 
+    private function filterStates():Void {
+        if (this.migrationState == null) {
+            Migration.print('First migration detected. Keeping all migration steps.', YELLOW);
+            return;
+        }
+
+        var stateFound:Bool = false;
+
+        while (!stateFound && this.data.length > 0) {
+            if (this.migrationState != this.data[0].hash) {
+                this.data.shift();
+                continue;
+            }
+
+            if (this.migrationState == this.data[0].hash) {
+                stateFound = true;
+                this.data.shift();
+                break;
+            }
+        }
+
+        if (!stateFound) {
+            Migration.print('There is no migration step with hash ${this.migrationState}.', RED);
+            throw "Current migration step not found.";
+        } else {
+            if (this.data.length == 0) Migration.print('All migrations are already applied.', GREEN);
+        }
+    }
 
 }
