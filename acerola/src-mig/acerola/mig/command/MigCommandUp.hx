@@ -15,13 +15,14 @@ class MigCommandUp extends MigCommand {
     override function run() {
         this.validatePath();
         this.healthCheck();
-        // this.validateData();
+
+        var curPath:String = Sys.getCwd();
 
         var data:MigRunnerData = this.createMigrationRunnerData();
 
         var app:String = 'node';
         var params:Array<String> = [
-            Path.join([this.path, 'mig-runner/MigRunner.js']),
+            Path.join([curPath, 'mig-runner/MigRunner.js']),
             Json.stringify(data)
         ];
 
@@ -32,10 +33,14 @@ class MigCommandUp extends MigCommand {
             var out = Terminal.run(app, params, 10.0);
             if (out.code == 0) out.output.print();
             else {
-                Sys.print(out.output);
+                "   - Migration UP failed ".print(YELLOW);
+                out.output.print();
+                out.out_err.print(RED);
             }
         } catch (e) {
             trace(e);
+            "   - Migration UP failed ".print(YELLOW);
+            '${e}'.print(RED);
         }
     }
 
