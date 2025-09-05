@@ -36,6 +36,8 @@ class MigCommandUp extends MigCommand {
                 "   - Migration UP failed ".print(YELLOW);
                 out.output.print();
                 out.out_err.print(RED);
+
+                throw 'Migration UP process failed';
             }
         } catch (e) {
             "   - Migration UP failed ".print(YELLOW);
