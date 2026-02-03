@@ -3,7 +3,7 @@ package acerola.mig.data;
 import anonstruct.AnonStruct;
 
 typedef MigRunnerStepData = {
-    var up:String;
+    var up_file:String;
     var hash:String;
 }
 
@@ -12,7 +12,7 @@ class MigRunnerStepDataValidator extends AnonStruct {
     public function new() {
         super();
 
-        this.propertyString('up')
+        this.propertyString('up_file')
             .refuseNull()
             .refuseEmpty();
 

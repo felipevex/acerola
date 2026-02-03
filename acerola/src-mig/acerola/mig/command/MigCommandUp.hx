@@ -80,11 +80,9 @@ class MigCommandUp extends MigCommand {
         }
 
         for (step in data.migrations) {
-            var sqlUp:String = this.loadStepData(step);
-
             result.steps.push({
                 hash : step.hash,
-                up : sqlUp
+                up_file : this.getStepFilePath(step)
             });
         }
 

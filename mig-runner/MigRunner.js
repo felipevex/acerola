@@ -558,7 +558,8 @@ var acerola_mig_MigRunner = function() {
 	while(_g < _g1.length) {
 		var step = _g1[_g];
 		++_g;
-		this.mig.add(step.hash,step.up);
+		var fileContent = js_node_Fs.readFileSync(step.up_file,{ encoding : "utf8"});
+		this.mig.add(step.hash,fileContent);
 	}
 	var _g = this.mig;
 	var onSuccess = $bind(this,this.onSuccess);
@@ -808,7 +809,7 @@ acerola_mig_data_MigRunnerDataValidator.prototype = $extend(anonstruct_AnonStruc
 });
 var acerola_mig_data_MigRunnerStepDataValidator = function() {
 	anonstruct_AnonStruct.call(this);
-	this.propertyString("up").refuseNull().refuseEmpty();
+	this.propertyString("up_file").refuseNull().refuseEmpty();
 	this.propertyString("hash").refuseNull().refuseEmpty();
 };
 acerola_mig_data_MigRunnerStepDataValidator.__name__ = true;
@@ -3749,9 +3750,7 @@ helper_kits_DateKit.calculateYearOld = function(birth) {
 	var cur = new Date();
 	var age = cur.getFullYear() - birth.getFullYear();
 	if(age > 0) {
-		if(birth.getMonth() > cur.getMonth()) {
-			--age;
-		} else if(birth.getDate() > cur.getDay()) {
+		if(birth.getMonth() > cur.getMonth() || birth.getMonth() == cur.getMonth() && birth.getDate() > cur.getDay()) {
 			--age;
 		}
 	}
@@ -3808,6 +3807,83 @@ helper_kits_DateKit.getDateMidnight = function(date) {
 };
 helper_kits_DateKit.getDateFreshDay = function(date) {
 	return HxOverrides.strDate(helper_kits_DateKit.getDateMysqlFormat(date) + " 00:00:00");
+};
+helper_kits_DateKit.brazilStringDateToDate = function(value,subjectiveDate) {
+	if(subjectiveDate == null) {
+		subjectiveDate = true;
+	}
+	value = StringTools.trim(value).toLowerCase();
+	if(subjectiveDate) {
+		if(value == "hoje" || value == "today") {
+			return new Date();
+		}
+		if(value == "amanha" || value == "amanhã" || value == "tomorrow") {
+			return helper_kits_DateKit.addDays(new Date(),1);
+		}
+		if(value == "ontem" || value == "yesterday") {
+			return helper_kits_DateKit.addDays(new Date(),-1);
+		}
+	}
+	value = value.split("-").join(".");
+	value = value.split("/").join(".");
+	value = value.split("\\").join(".");
+	value = value.split(":").join(".");
+	value = value.split(" ").join(".");
+	while(value.indexOf("..") >= 0) value = value.split("..").join(".");
+	var vals = value.split(".");
+	if(vals.length != 3 && vals.length != 5) {
+		return null;
+	}
+	var _g = 0;
+	var _g1 = vals.length;
+	while(_g < _g1) {
+		var i = _g++;
+		vals[i] = helper_kits_StringKit.getAllowedChars(vals[i],"0123456789");
+		if(vals[i].length == 0) {
+			return null;
+		}
+	}
+	var day = Std.parseInt(vals[0]);
+	var month = Std.parseInt(vals[1]);
+	var year = Std.parseInt(vals[2]);
+	if(day == null || month == null || year == null) {
+		return null;
+	}
+	if(day < 1 || day > 31 || month < 1 || month > 12 || year <= 0) {
+		return null;
+	}
+	if(vals[2].length < 4) {
+		year += 2000;
+		vals[2] = year == null ? "null" : "" + year;
+	}
+	vals[1] = StringTools.lpad(month == null ? "null" : "" + month,"0",2);
+	vals[0] = StringTools.lpad(day == null ? "null" : "" + day,"0",2);
+	if(vals.length == 5) {
+		var hour = Std.parseInt(vals[3]);
+		var minute = Std.parseInt(vals[4]);
+		if(hour == null || minute == null) {
+			return null;
+		}
+		if(hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+			return null;
+		}
+		vals[4] = StringTools.lpad(minute == null ? "null" : "" + minute,"0",2);
+		vals[3] = StringTools.lpad(hour == null ? "null" : "" + hour,"0",2);
+	}
+	try {
+		var date = null;
+		if(vals.length == 3) {
+			date = HxOverrides.strDate(vals[2] + "-" + vals[1] + "-" + vals[0]);
+		} else {
+			date = HxOverrides.strDate(vals[2] + "-" + vals[1] + "-" + vals[0] + " " + vals[3] + ":" + vals[4] + ":00");
+		}
+		if(DateTools.format(date,"%d.%m.%Y") == "" + vals[0] + "." + vals[1] + "." + vals[2]) {
+			return date;
+		}
+		return null;
+	} catch( _g ) {
+		return null;
+	}
 };
 helper_kits_DateKit.convertToDate = function(value,subjectiveDate) {
 	if(subjectiveDate == null) {
@@ -4053,6 +4129,35 @@ helper_kits_StringKit.removeQuotes = function(value) {
 	} else {
 		return value;
 	}
+};
+helper_kits_StringKit.breakByChars = function(input,chars) {
+	if(input == null) {
+		return [];
+	} else if(input.length == 0) {
+		return [""];
+	} else if(chars == null || chars.length == 0) {
+		return [input];
+	}
+	var result = [];
+	var word = "";
+	var _g = 0;
+	var _g1 = input.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var char = input.charAt(i);
+		if(chars.indexOf(char) == -1) {
+			word += char;
+			continue;
+		}
+		if(word.length > 0) {
+			result.push(word);
+			word = "";
+		}
+	}
+	if(word.length > 0) {
+		result.push(word);
+	}
+	return result;
 };
 helper_kits_StringKit.getWordSurroundingCharAt = function(value,position) {
 	var words = value.split(" ");
@@ -4448,7 +4553,7 @@ helper_kits_StringKit.getEmail = function(value) {
 	}
 };
 helper_kits_StringKit.isEmail = function(email) {
-	var emailExpression = new EReg("[A-Z0-9._%-]+@[A-Z0-9.-]+\\.[A-Z][A-Z][A-Z]?","i");
+	var emailExpression = new EReg("^[A-Z0-9]+[A-Z0-9._%-]*@[A-Z0-9]+[A-Z0-9.-]*\\.[A-Z]{2,}$","i");
 	return emailExpression.match(email);
 };
 helper_kits_StringKit.isURL = function(value) {
@@ -5225,6 +5330,131 @@ node_mysql_MysqlResultSet.prototype = {
 	,__class__: node_mysql_MysqlResultSet
 	,__properties__: {get_nfields:"get_nfields",get_length:"get_length",get_changedRows:"get_changedRows",get_affectedRows:"get_affectedRows",get_insertIds:"get_insertIds",get_insertId:"get_insertId"}
 };
+var sys_io_FileInput = function(fd) {
+	this.hasReachedEof = false;
+	this.fd = fd;
+	this.pos = 0;
+};
+sys_io_FileInput.__name__ = true;
+sys_io_FileInput.__super__ = haxe_io_Input;
+sys_io_FileInput.prototype = $extend(haxe_io_Input.prototype,{
+	throwEof: function() {
+		this.hasReachedEof = true;
+		throw haxe_Exception.thrown(new haxe_io_Eof());
+	}
+	,readByte: function() {
+		var buf = js_node_buffer_Buffer.alloc(1);
+		var bytesRead;
+		try {
+			bytesRead = js_node_Fs.readSync(this.fd,buf,0,1,this.pos);
+		} catch( _g ) {
+			var e = haxe_Exception.caught(_g).unwrap();
+			if(e.code == "EOF") {
+				this.hasReachedEof = true;
+				throw haxe_Exception.thrown(new haxe_io_Eof());
+			}
+			throw haxe_Exception.thrown(haxe_io_Error.Custom(e));
+		}
+		if(bytesRead == 0) {
+			this.hasReachedEof = true;
+			throw haxe_Exception.thrown(new haxe_io_Eof());
+		}
+		this.pos++;
+		return buf[0];
+	}
+	,readBytes: function(s,pos,len) {
+		var data = s.b;
+		var buf = js_node_buffer_Buffer.from(data.buffer,data.byteOffset,s.length);
+		var bytesRead;
+		try {
+			bytesRead = js_node_Fs.readSync(this.fd,buf,pos,len,this.pos);
+		} catch( _g ) {
+			var e = haxe_Exception.caught(_g).unwrap();
+			if(e.code == "EOF") {
+				this.hasReachedEof = true;
+				throw haxe_Exception.thrown(new haxe_io_Eof());
+			}
+			throw haxe_Exception.thrown(haxe_io_Error.Custom(e));
+		}
+		if(bytesRead == 0) {
+			this.hasReachedEof = true;
+			throw haxe_Exception.thrown(new haxe_io_Eof());
+		}
+		this.pos += bytesRead;
+		return bytesRead;
+	}
+	,close: function() {
+		js_node_Fs.closeSync(this.fd);
+	}
+	,seek: function(p,pos) {
+		this.hasReachedEof = false;
+		switch(pos._hx_index) {
+		case 0:
+			this.pos = p;
+			break;
+		case 1:
+			this.pos += p;
+			break;
+		case 2:
+			this.pos = js_node_Fs.fstatSync(this.fd).size + p;
+			break;
+		}
+	}
+	,tell: function() {
+		return this.pos;
+	}
+	,eof: function() {
+		return this.hasReachedEof;
+	}
+	,__class__: sys_io_FileInput
+});
+var sys_io_FileOutput = function(fd) {
+	this.fd = fd;
+	this.pos = 0;
+};
+sys_io_FileOutput.__name__ = true;
+sys_io_FileOutput.__super__ = haxe_io_Output;
+sys_io_FileOutput.prototype = $extend(haxe_io_Output.prototype,{
+	writeByte: function(b) {
+		var buf = js_node_buffer_Buffer.alloc(1);
+		buf[0] = b;
+		js_node_Fs.writeSync(this.fd,buf,0,1,this.pos);
+		this.pos++;
+	}
+	,writeBytes: function(s,pos,len) {
+		var data = s.b;
+		var buf = js_node_buffer_Buffer.from(data.buffer,data.byteOffset,s.length);
+		var wrote = js_node_Fs.writeSync(this.fd,buf,pos,len,this.pos);
+		this.pos += wrote;
+		return wrote;
+	}
+	,close: function() {
+		js_node_Fs.closeSync(this.fd);
+	}
+	,seek: function(p,pos) {
+		switch(pos._hx_index) {
+		case 0:
+			this.pos = p;
+			break;
+		case 1:
+			this.pos += p;
+			break;
+		case 2:
+			this.pos = js_node_Fs.fstatSync(this.fd).size + p;
+			break;
+		}
+	}
+	,tell: function() {
+		return this.pos;
+	}
+	,__class__: sys_io_FileOutput
+});
+var sys_io_FileSeek = $hxEnums["sys.io.FileSeek"] = { __ename__:true,__constructs__:null
+	,SeekBegin: {_hx_name:"SeekBegin",_hx_index:0,__enum__:"sys.io.FileSeek",toString:$estr}
+	,SeekCur: {_hx_name:"SeekCur",_hx_index:1,__enum__:"sys.io.FileSeek",toString:$estr}
+	,SeekEnd: {_hx_name:"SeekEnd",_hx_index:2,__enum__:"sys.io.FileSeek",toString:$estr}
+};
+sys_io_FileSeek.__constructs__ = [sys_io_FileSeek.SeekBegin,sys_io_FileSeek.SeekCur,sys_io_FileSeek.SeekEnd];
 var terminal_Terminal = function() { };
 terminal_Terminal.__name__ = true;
 terminal_Terminal.colorizeRed = function(s) {

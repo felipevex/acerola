@@ -97,6 +97,14 @@ class MigCommand {
         File.saveContent(Path.join([fullPath, migFile]), migFileData);
     }
 
+    private function getStepFilePath(step:MigStepData):String {
+        var fullPath:String = this.getFullPath();
+        var sqlFile:String = step.file + '-UP.sql';
+
+        var sqlFilePath:String = Path.join([fullPath, sqlFile]);
+        return sqlFilePath;
+    }
+
     private function loadStepData(step:MigStepData):String {
         var fullPath:String = this.getFullPath();
         var sqlFile:String = step.file + '-UP.sql';

@@ -1,5 +1,6 @@
 package acerola.mig;
 
+import sys.io.File;
 import haxe.Json;
 import acerola.mig.data.MigRunnerData;
 import migration.Migration;
@@ -40,7 +41,10 @@ class MigRunner {
         }
 
         this.mig = new Migration(this.data.uuid);
-        for (step in this.data.steps) this.mig.add(step.hash, step.up);
+        for (step in this.data.steps) {
+            var fileContent:String = File.getContent(step.up_file);
+            this.mig.add(step.hash, fileContent);
+        }
 
         this.mig.connectDatabase(
             connection,
