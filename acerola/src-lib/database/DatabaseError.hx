@@ -4,5 +4,6 @@ typedef DatabaseError = {
     var ticket:String;
     var query:String;
     var code:String;
+    var state:String;
     var message:String;
 }

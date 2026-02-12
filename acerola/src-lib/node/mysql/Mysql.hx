@@ -14,7 +14,7 @@ extern class Mysql {
 }
 
 extern class MysqlConnection {
-    
+
     public function connect(onError:MysqlError->Void):Void;
 
     // callback = error, results, fields
@@ -138,6 +138,7 @@ extern class MysqlError {
     public var sql:String;
     public var sqlState:String;
     public var sqlMessage:String;
+    public var errno:Int;
 
     public function toString():String;
 }

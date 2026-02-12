@@ -120,11 +120,11 @@ class DatabasePool {
 
     private function runSimpleQuery(conn:MysqlConnection, query:String, cb:(err:Bool)->Void) {
         conn.queryResult(
-            query, 
+            query,
             function(err:MysqlError, result:MysqlResultSet<Dynamic>):Void {
                 if (err != null) cb(true);
                 else cb(false);
-            }, 
+            },
             null,
             this.model.auto_json_parse
         );
@@ -145,7 +145,7 @@ class DatabasePool {
             poolConn.conn.destroy();
             if (callback != null) haxe.Timer.delay(callback, 0);
         } else {
-            
+
             if (!poolConn.autoTransaction) {
                 poolConn.conn.release();
                 if (callback != null) haxe.Timer.delay(callback, 0);
@@ -157,7 +157,7 @@ class DatabasePool {
                 if (callback != null) callback();
             });
         }
-        
+
     }
 
     public function isOpen(ticket:String):Bool return this.map.exists(ticket);
@@ -166,7 +166,7 @@ class DatabasePool {
         if (!this.isOpen(ticket)) {
             haxe.Timer.delay(() -> {
                 if (onError != null) onError(
-                    this.generateError(ticket, request.query, ERROR_INVALID_TICKET, request.error, 'Invalid database ticket.')
+                    this.generateError(ticket, request.query, ERROR_INVALID_TICKET, ERROR_INVALID_TICKET, request.error, 'Invalid database ticket.')
                 );
             }, 0);
 
@@ -194,7 +194,7 @@ class DatabasePool {
                         connectionKilled = true;
 
                         if (onError != null) onError(
-                            this.generateError(ticket, sanitizedQuery, ERROR_CONNECTION_TIMEOUT, request.error, 'Connection killed due overtime.')
+                            this.generateError(ticket, sanitizedQuery, ERROR_CONNECTION_TIMEOUT, ERROR_CONNECTION_TIMEOUT, request.error, 'Connection killed due overtime.')
                         );
                     }
                 }
@@ -224,7 +224,7 @@ class DatabasePool {
                         onSuccess(resultSuccess);
                     } else {
                         if (onError != null) onError(
-                            this.generateError(ticket, sanitizedQuery, err.code, request.error, err.message)
+                            this.generateError(ticket, sanitizedQuery, err.code, err.sqlState, request.error, err.message)
                         );
                     }
                 },
@@ -278,11 +278,12 @@ class DatabasePool {
         }
     }
 
-    inline private function generateError(ticket:String, sql:String, code:String, altMessage:String, message:String):DatabaseError {
+    inline private function generateError(ticket:String, sql:String, code:String, state:String, altMessage:String, message:String):DatabaseError {
         var result:DatabaseError = {
             ticket : ticket,
             query : sql,
             code : code,
+            state: state,
             message : altMessage == null
                 ? message
                 : altMessage
@@ -294,8 +295,8 @@ class DatabasePool {
     public function fastQuery(query:String, cb:(success:Bool)->Void):Void {
         this.getTicket((ticket:String) -> {
             this.query(
-                ticket, 
-                { query : query }, 
+                ticket,
+                { query : query },
                 (result:DatabaseSuccess<Dynamic>) ->  {
                     this.closeTicket(ticket);
                     cb(true);
