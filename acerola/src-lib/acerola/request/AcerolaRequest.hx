@@ -1,12 +1,14 @@
 package acerola.request;
 
+import js.html.ServiceWorkerUpdateViaCache;
+import helper.kits.StringKit;
 import haxe.ds.StringMap;
 import acerola.server.error.AcerolaServerErrorData.AcerolaServerErrorDataValidator;
 import haxe.Http;
 import acerola.server.model.AcerolaServerVerbsType;
 
 class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
-    
+
     public var verb:AcerolaServerVerbsType;
     public var path:AcerolaPath;
 
@@ -26,14 +28,20 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
         var status:Int = 0;
         var http:Http = new Http(null);
 
-        var processData:(data:String)->Dynamic = (data:String) -> {
+        var processData:(data:haxe.io.Bytes)->Dynamic = (data:haxe.io.Bytes) -> {
             var result:Dynamic = data;
-            var contentType:String = http.responseHeaders == null 
-                ? 'application/json' 
+            var contentType:String = http.responseHeaders == null
+                ? 'application/json'
                 : http.responseHeaders.get('content-type');
 
+            if (StringKit.isEmpty(contentType)) contentType = 'application/json';
+            trace(contentType);
             try {
-                result = contentType.indexOf('application/json') != -1 ? haxe.Json.parse(data) : data;
+
+                if (StringTools.startsWith(contentType, 'application/json')) result = haxe.Json.parse(data.toString());
+                else if (StringTools.startsWith(contentType, 'text/plain') || StringTools.startsWith(contentType, 'text/html')) result = data.toString();
+                else result = data;
+
             } catch (e) {}
 
             return result;
@@ -41,23 +49,18 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
 
         var processBodyData:(data:REQUEST_BODY)->String = (data:REQUEST_BODY) -> {
             var result:String = '';
-            // var contentType:String = http.responseHeaders.get('content-type');
 
             result = haxe.Json.stringify(data);
-            
-            // try {
-            //     result = contentType.indexOf('application/json') != -1 ? haxe.Json.stringify(data) : data;
-            // } catch (e) {}
 
             return result;
         }
 
         http.onStatus = function(s:Int) status = s;
 
-        http.onData = function(data:String) {
+        http.onBytes = function(bytes:haxe.io.Bytes) {
             var result = new AcerolaResponse<RESPONSE_BODY>();
             result.failed = false;
-            result.result = processData(data);
+            result.result = processData(bytes);
 
             response(result);
         }
@@ -65,7 +68,7 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
         http.onError = function(msg:String) {
             var result = new AcerolaResponse<RESPONSE_BODY>();
             result.failed = true;
-            var error:Dynamic = processData(http.responseData);
+            var error:Dynamic = processData(http.responseBytes);
 
             var validator:AcerolaServerErrorDataValidator = new AcerolaServerErrorDataValidator();
             if (validator.pass(error)) result.error = error;
@@ -73,19 +76,20 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
             else result.error = {
                 status : status,
                 message : msg,
-                error_code : 'unknown_error'
+                error_code : 'unknown_error',
+                internal : http.responseData
             }
 
             response(result);
         }
 
         http.setHeader('Content-Type', 'application/json');
-        
+
         if (headers != null) for (head in headers.keys()) http.setHeader(head, headers.get(head));
 
         http.url = url;
         if (body != null) http.setPostData(processBodyData(body));
         http.request(this.verb == AcerolaServerVerbsType.POST ? true : false);
     }
-    
+
 }
