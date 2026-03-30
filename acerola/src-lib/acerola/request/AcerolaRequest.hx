@@ -35,7 +35,7 @@ class AcerolaRequest<RESPONSE_BODY, REQUEST_PARAMS, REQUEST_BODY> {
                 : http.responseHeaders.get('content-type');
 
             if (StringKit.isEmpty(contentType)) contentType = 'application/json';
-            trace(contentType);
+
             try {
 
                 if (StringTools.startsWith(contentType, 'application/json')) result = haxe.Json.parse(data.toString());
